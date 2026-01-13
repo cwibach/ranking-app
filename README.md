@@ -1,5 +1,7 @@
 # Full-Stack Ranking Application
 
+NOTE: So far all code & Rest of README generated with Copilot as an experiment. Many changes will be coming by myself.
+
 A modern web application for ranking CSV data through pairwise comparisons using binary insertion sort. Built with React + TypeScript (frontend) and Node.js + Express (backend).
 
 ## Features
