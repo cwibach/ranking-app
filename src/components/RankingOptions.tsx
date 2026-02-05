@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Box, Grid, Typography } from '@mui/material'
 
 interface Props {
   itemCount: number
@@ -30,15 +31,21 @@ export default function RankingOptions({ itemCount, sessionId, onStart, onBack }
   }
 
   return (
-    <div className="container">
-      <div className="header">
-        <h1>Ranking Options</h1>
-        <p>You have {itemCount} items to rank</p>
-      </div>
+    <Grid container spacing={2} justifyContent={"center"}>
+      <Grid size={12}>
+        <Typography variant='h2'>
+          Ranking Settings
+        </Typography>
+        <Typography variant="body1">
+          You have {itemCount} items to rank
+        </Typography>
+      </Grid>
 
-      <div className="content">
-        <div className="card">
-          <div className="card-title">⚙️ Ranking Settings</div>
+      <Box className="content">
+        <Box className="card">
+          <Typography variant='h3' color='black'>
+            ⚙️ Ranking Settings
+          </Typography>
 
           <div className="checkbox-group">
             <label>
@@ -51,10 +58,10 @@ export default function RankingOptions({ itemCount, sessionId, onStart, onBack }
             </label>
           </div>
 
-          <div className="checkbox-desc">
+          <Typography variant="body2" color='black'>
             When enabled, items will be shuffled to remove any bias from their original order.
-          </div>
-        </div>
+          </Typography>
+        </Box>
 
         <div className="btn-group" style={{ marginTop: '30px' }}>
           <button className="btn-success" onClick={handleStart} style={{ flex: 1 }}>
@@ -64,7 +71,7 @@ export default function RankingOptions({ itemCount, sessionId, onStart, onBack }
             ← Back
           </button>
         </div>
-      </div>
-    </div>
+      </Box>
+    </Grid>
   )
 }

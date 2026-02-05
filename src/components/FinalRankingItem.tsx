@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Button } from '@mui/material'
+import { Button, Typography } from '@mui/material'
 
 interface Item {
   [key: string]: string
@@ -21,7 +21,9 @@ export const ExpandedItemInfo = ({item, hideView}: Props) => {
         <div>
             {Object.entries(item).map(([key, value]) => (
                 <p key={key}>
-                    <strong>{key}:</strong> {value}
+                    <Typography variant="body2">
+                        <strong>{key}:</strong> {value}
+                    </Typography>
                 </p>
             ))}
 
@@ -40,7 +42,9 @@ export const UnExpandedItemInfo = ({item, index, expandView}: Props2) => {
 
     return(
         <div>
-            <h3>{firstValue}</h3>
+            <Typography variant='h4'>
+                {firstValue}
+            </Typography>
 
             <Button
                 onClick={() => expandView(index)}

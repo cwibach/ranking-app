@@ -1,3 +1,4 @@
+import { Box, Button, Grid, Typography } from '@mui/material'
 import { useRef } from 'react'
 
 interface Props {
@@ -64,68 +65,86 @@ Item 10,Tenth item,7.8`
   }
 
   return (
-    <div className="container">
-      <div className="header">
-        <h1>📊 Ranking Application</h1>
-        <p>Select a CSV file or use demo data to start ranking</p>
-      </div>
+    <Grid container spacing={2} justifyContent={"space-evenly"}>
+      <Grid size={12} justifyContent={"center"}>
+        <Typography variant='h2'>
+          Ranking Application
+        </Typography>
+        <Typography variant="body1">
+          Select a CSV file or use demo data to start ranking
+        </Typography>
+      </Grid>
 
-      <div className="content">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '30px' }}>
-          {/* Load CSV Option */}
-          <div className="card" style={{ padding: '20px', textAlign: 'center' }}>
-            <div style={{ fontSize: '24px', marginBottom: '15px' }}>📁</div>
-            <div className="card-title">Load Your CSV File</div>
-            <div className="card-description">Upload a CSV file with items to rank</div>
-            <button
-              className="btn-primary"
-              style={{ width: '100%' }}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              Choose File
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv"
-              onChange={handleFileUpload}
-              style={{ display: 'none' }}
-            />
-          </div>
+      <Grid size={4}>
+        <Box alignItems="center" sx={{ p: 1, border: "1px dashed grey" }}>
+          <Typography variant='h3'>
+            📁 Load CSV
+          </Typography>
+          <Typography variant="body1">
+            Upload a CSV file with items to rank
+          </Typography>
+          <Button
+            className="btn-primary"
+            style={{ width: '100%' }}
+            onClick={() => fileInputRef.current?.click()}
+            variant='contained'
+          >
+            Choose File
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv"
+            onChange={handleFileUpload}
+            style={{ display: 'none' }}
+          />
+        </Box>
+      </Grid>
 
-          {/* Demo Data Option */}
-          <div className="card" style={{ padding: '20px', textAlign: 'center' }}>
-            <div style={{ fontSize: '24px', marginBottom: '15px' }}>⭐</div>
-            <div className="card-title">Try Demo Data</div>
-            <div className="card-description">Use sample data to see how it works</div>
-            <button
-              className="btn-accent"
-              style={{ width: '100%' }}
-              onClick={handleDemoData}
-            >
-              Load Demo
-            </button>
-          </div>
+      <Grid size={4}>
+        <Box sx={{ p: 1, border: "1px dashed grey" }}>
+          <Typography variant='h3'>
+            Demo Data
+          </Typography>
 
-          {/* Resume Option */}
-          <div className="card" style={{ padding: '20px', textAlign: 'center', opacity: 0.6 }}>
-            <div style={{ fontSize: '24px', marginBottom: '15px' }}>⏸️</div>
-            <div className="card-title">Resume Previous</div>
-            <div className="card-description">Continue a previous ranking session</div>
-            <button
-              className="btn-success"
-              style={{ width: '100%' }}
-              disabled
-            >
-              Coming Soon
-            </button>
-          </div>
-        </div>
+          <Typography variant="body1">
+            Use sample data to see how it works
+          </Typography>
 
-        <div style={{ fontSize: '9px', color: '#999999', textAlign: 'center' }}>
-          CSV files should have headers. Each row will be ranked.
-        </div>
-      </div>
-    </div>
+          <Button
+            className="btn-accent"
+            style={{ width: '100%' }}
+            onClick={handleDemoData}
+            variant='contained'
+          >
+            Load Demo
+          </Button>
+        </Box>
+      </Grid>
+
+      <Grid size={4}>
+        <Box sx={{ p: 1, border: "1px dashed grey" }}>
+          <Typography variant='h3'>
+            Coming Soon
+          </Typography>
+
+          <Typography variant="body1">
+            Continue a previous ranking session
+          </Typography>
+          <Button
+            className="btn-success"
+            style={{ width: '100%' }}
+            disabled
+            variant='contained'
+          >
+            Coming Soon
+          </Button>
+        </Box>
+      </Grid>
+
+      <Typography variant="body2">
+        CSV files should have headers. Each row will be ranked.
+      </Typography>
+    </Grid>
   )
 }
