@@ -7,9 +7,10 @@ interface Item {
 interface Props {
   sessionId: string
   onNewRanking: () => void
+  sortedItems: Item[]
 }
 
-export default function Results({ sessionId, onNewRanking }: Props) {
+export default function Results({ sessionId, onNewRanking, sortedItems }: Props) {
   const [results, setResults] = useState<Item[]>([])
   const [loading, setLoading] = useState(true)
   const [comparisons, setComparisons] = useState(0)
@@ -90,6 +91,16 @@ export default function Results({ sessionId, onNewRanking }: Props) {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="itemlist">
+          {sortedItems.map((item) => {
+            return(
+              <div className="iteminfo">
+                Test text
+              </div>
+            )
+          })}
         </div>
 
         <div className="btn-group">

@@ -21,9 +21,10 @@ interface Props {
   fieldnames: string[]
   itemCount: number
   onComplete: () => void
+  setSortedItems: ([]: Item) => void
 }
 
-export default function RankingScreen({ sessionId, fieldnames, itemCount, onComplete }: Props) {
+export default function RankingScreen({ sessionId, fieldnames, itemCount, onComplete, setSortedItems }: Props) {
   const [ranking, setRanking] = useState<RankingResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
@@ -46,6 +47,7 @@ export default function RankingScreen({ sessionId, fieldnames, itemCount, onComp
 
       if (data.status === 'complete') {
         onComplete()
+        setSortedItems(data.sortedItems)
       }
     } catch (error) {
       alert('Error: ' + (error as Error).message)
@@ -68,6 +70,7 @@ export default function RankingScreen({ sessionId, fieldnames, itemCount, onComp
 
       if (data.status === 'complete') {
         onComplete()
+        setSortedItems(data.sortedItems)
       }
     } catch (error) {
       alert('Error: ' + (error as Error).message)
