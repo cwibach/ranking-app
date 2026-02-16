@@ -17,8 +17,13 @@ interface Props2 {
 }
 
 export const ExpandedItemInfo = ({item, hideView}: Props) => {
+    const [firstKey, firstValue] = Object.entries(item)[0]
     return(
         <div>
+            <Typography variant='h4'>
+                {firstValue}
+            </Typography>
+
             {Object.entries(item).map(([key, value]) => (
                 <p key={key}>
                     <Typography variant="body2">

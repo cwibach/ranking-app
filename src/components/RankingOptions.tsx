@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Box, Grid, Typography } from '@mui/material'
+import { Box, Grid, Typography, Button, Checkbox, FormControlLabel} from '@mui/material'
 
 interface Props {
   itemCount: number
@@ -33,7 +33,7 @@ export default function RankingOptions({ itemCount, sessionId, onStart, onBack }
   return (
     <Grid container spacing={2} justifyContent={"center"}>
       <Grid size={12}>
-        <Typography variant='h2'>
+        <Typography variant='h1'>
           Ranking Settings
         </Typography>
         <Typography variant="body1">
@@ -47,30 +47,38 @@ export default function RankingOptions({ itemCount, sessionId, onStart, onBack }
             ⚙️ Ranking Settings
           </Typography>
 
-          <div className="checkbox-group">
-            <label>
-              <input
-                type="checkbox"
+          <Box className="checkbox-group">
+            <FormControlLabel
+              control={<Checkbox
                 checked={randomize}
                 onChange={(e) => setRandomize(e.target.checked)}
-              />
-              🔀 Randomize item order before ranking
-            </label>
-          </div>
+              />}
+              label="Randomize item order before ranking"
+            />
+            <Typography variant="body2" color='black'>
+              When enabled, items will be shuffled to remove any bias from their original order.
+            </Typography>
+          </Box>
 
-          <Typography variant="body2" color='black'>
-            When enabled, items will be shuffled to remove any bias from their original order.
-          </Typography>
+
         </Box>
 
-        <div className="btn-group" style={{ marginTop: '30px' }}>
-          <button className="btn-success" onClick={handleStart} style={{ flex: 1 }}>
+        <Box className="btn-group" style={{ marginTop: '30px' }}>
+          <Button
+            className="btn-success"
+            onClick={handleStart}
+            style={{ flex: 1 }}
+            variant={"contained"}>
             Start Ranking →
-          </button>
-          <button className="btn-secondary" onClick={onBack} style={{ flex: 1 }}>
+          </Button>
+          <Button
+            className="btn-secondary"
+            onClick={onBack}
+            style={{ flex: 1 }}
+            variant={"contained"}>
             ← Back
-          </button>
-        </div>
+          </Button>
+        </Box>
       </Box>
     </Grid>
   )

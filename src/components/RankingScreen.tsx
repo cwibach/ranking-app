@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Box, Button, Grid, Typography } from '@mui/material'
 
 interface Item {
   [key: string]: string
@@ -81,19 +82,61 @@ export default function RankingScreen({ sessionId, fieldnames, itemCount, onComp
 
   if (loading || !ranking) {
     return (
-      <div className="container">
-        <div className="header">
-          <h1>Loading...</h1>
-        </div>
-        <div className="content" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <p>Please wait...</p>
-        </div>
-      </div>
-    )
-  }
+      <Grid container spacing={2} justifyContent={"space-evenly"}>
+        <Grid size={12} justifyContent={"center"}>
+          <Typography variant='h2'>
+            Select Preferred Option
+          </Typography>
+          <Typography variant="body1">
+            Loading items
+          </Typography>
+        </Grid>
 
-  if (ranking.status === 'complete') {
-    return null
+        <Grid size={12} justifyContent={"center"}>
+          <Box className="two-column">
+            {/* Left Panel */}
+            <Box className="comparison-panel left">
+              <Typography className="panel-header left">← Left Option</Typography>
+              <Box className="panel-content">
+                <Typography className="panel-header left">← Loading left option</Typography>
+              </Box>
+              <Button
+                className="btn-success panel-button"
+                disabled={true}
+                variant={"contained"}
+              >
+                ✓ PREFER LEFT
+              </Button>
+            </Box>
+
+            {/* Right Panel */}
+            <Box className="comparison-panel right">
+              <Typography className="panel-header right">Right Option →</Typography>
+              <Box className="panel-content">
+                <Typography className="panel-header left">← Loading right option</Typography>
+              </Box>
+              <Button
+                className="btn-accent panel-button"
+                disabled={true}
+                variant={"contained"}
+              >
+                PREFER RIGHT ✓
+              </Button>
+            </Box>
+          </Box>
+
+          <Box style={{ marginTop: '20px' }}>
+            <Button 
+            className="btn-secondary" 
+            style={{ padding: '7px 15px', fontSize: '10px' }}
+            variant={"contained"}
+            disabled={true}>
+              💾 Save Progress
+            </Button>
+          </Box>
+        </Grid>
+      </Grid>
+    )
   }
 
   const leftItem = ranking.leftItem || {}
@@ -103,61 +146,69 @@ export default function RankingScreen({ sessionId, fieldnames, itemCount, onComp
   const comparisons = ranking.comparisons || 0
 
   return (
-    <div className="container">
-      <div className="header">
-        <h1>Which do you prefer?</h1>
-        <p>Item {itemsDone + 1} of {totalItems} | Comparisons: {comparisons}</p>
-      </div>
+    <Grid container spacing={2} justifyContent={"space-evenly"}>
+      <Grid size={12} justifyContent={"center"}>
+        <Typography variant='h2'>
+          Select Preferred Option
+        </Typography>
+        <Typography variant="body1">
+          Item {itemsDone + 1} of {totalItems} | Comparisons: {comparisons}
+        </Typography>
+      </Grid>
 
-      <div className="content">
-        <div className="two-column">
+      <Grid size={12} justifyContent={"center"}>
+        <Box className="two-column">
           {/* Left Panel */}
-          <div className="comparison-panel left">
-            <div className="panel-header left">← Left Option</div>
-            <div className="panel-content">
+          <Box className="comparison-panel left">
+            <Typography className="panel-header left">← Left Option</Typography>
+            <Box className="panel-content">
               {fieldnames.map((field) => (
                 <div key={field} className="item-field">
-                  <div className="item-field-label">{field}:</div>
-                  <div className="item-field-value">{leftItem[field] || 'N/A'}</div>
+                  <Typography className="item-field-label">{field}:</Typography>
+                  <Typography className="item-field-value">{leftItem[field] || 'N/A'}</Typography>
                 </div>
               ))}
-            </div>
-            <button
+            </Box>
+            <Button
               className="btn-success panel-button"
               onClick={() => handleChoice(true)}
-              disabled={loading}
+              variant={"contained"}
             >
               ✓ PREFER LEFT
-            </button>
-          </div>
+            </Button>
+          </Box>
 
           {/* Right Panel */}
-          <div className="comparison-panel right">
-            <div className="panel-header right">Right Option →</div>
-            <div className="panel-content">
+          <Box className="comparison-panel right">
+            <Typography className="panel-header right">Right Option →</Typography>
+            <Box className="panel-content">
               {fieldnames.map((field) => (
                 <div key={field} className="item-field">
-                  <div className="item-field-label">{field}:</div>
-                  <div className="item-field-value">{rightItem[field] || 'N/A'}</div>
+                  <Typography className="item-field-label">{field}:</Typography>
+                  <Typography className="item-field-value">{rightItem[field] || 'N/A'}</Typography>
                 </div>
               ))}
-            </div>
-            <button
+            </Box>
+            <Button
               className="btn-accent panel-button"
               onClick={() => handleChoice(false)}
-              disabled={loading}
+              variant={"contained"}
             >
               PREFER RIGHT ✓
-            </button>
-          </div>
-        </div>
+            </Button>
+          </Box>
+        </Box>
 
-        <div style={{ marginTop: '20px' }}>
-          <button className="btn-secondary" style={{ padding: '7px 15px', fontSize: '10px' }}>
+        <Box style={{ marginTop: '20px' }}>
+          <Button 
+          className="btn-secondary" 
+          style={{ padding: '7px 15px', fontSize: '10px' }}
+          variant={"contained"}
+          disabled={true}>
             💾 Save Progress
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </Box>
+      </Grid>
+    </Grid>
   )
 }

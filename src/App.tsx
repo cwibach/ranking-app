@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import './App.css'
 import FileSelection from './components/FileSelection'
 import RankingOptions from './components/RankingOptions'
 import RankingScreen from './components/RankingScreen'
