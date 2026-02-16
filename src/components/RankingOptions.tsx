@@ -33,18 +33,18 @@ export default function RankingOptions({ itemCount, sessionId, onStart, onBack }
   return (
     <Grid container spacing={2} justifyContent={"center"}>
       <Grid size={12}>
-        <Typography variant='h1'>
+        <Typography variant='h2' fontWeight={"bold"} sx={{mb:2}}>
           Ranking Settings
         </Typography>
-        <Typography variant="body1">
+        <Typography variant="body1" sx={{mb:1}}>
           You have {itemCount} items to rank
         </Typography>
       </Grid>
 
-      <Box className="content">
-        <Box className="card">
-          <Typography variant='h3' color='black'>
-            ⚙️ Ranking Settings
+      <Grid size={11} className="content">
+        <Box className="card" sx={{border: "1px dashed grey", mb:5}}>
+          <Typography variant='h3' color='black' sx={{mb:1}}>
+            Ranking Settings ⚙️ 
           </Typography>
 
           <Box className="checkbox-group">
@@ -59,27 +59,25 @@ export default function RankingOptions({ itemCount, sessionId, onStart, onBack }
               When enabled, items will be shuffled to remove any bias from their original order.
             </Typography>
           </Box>
-
-
         </Box>
 
-        <Box className="btn-group" style={{ marginTop: '30px' }}>
-          <Button
-            className="btn-success"
-            onClick={handleStart}
-            style={{ flex: 1 }}
-            variant={"contained"}>
-            Start Ranking →
-          </Button>
+        <Box className="btn-group" style={{border: "1px dashed grey" }}>
           <Button
             className="btn-secondary"
             onClick={onBack}
-            style={{ flex: 1 }}
             variant={"contained"}>
             ← Back
           </Button>
+
+          <Button
+            className="btn-success"
+            onClick={handleStart}
+            variant={"contained"}
+            sx={{ml:5}}>
+            Start Ranking →
+          </Button>
         </Box>
-      </Box>
+      </Grid>
     </Grid>
   )
 }
