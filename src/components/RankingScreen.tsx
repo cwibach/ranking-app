@@ -22,7 +22,7 @@ interface Props {
   fieldnames: string[]
   itemCount: number
   onComplete: () => void
-  setSortedItems: ([]: Item) => void
+  setSortedItems: (items: Item[]) => void
 }
 
 export default function RankingScreen({ sessionId, fieldnames, itemCount, onComplete, setSortedItems }: Props) {
@@ -48,7 +48,7 @@ export default function RankingScreen({ sessionId, fieldnames, itemCount, onComp
 
       if (data.status === 'complete') {
         onComplete()
-        setSortedItems(data.sortedItems)
+        setSortedItems(data.sortedItems || [])
       }
     } catch (error) {
       alert('Error: ' + (error as Error).message)
@@ -71,10 +71,41 @@ export default function RankingScreen({ sessionId, fieldnames, itemCount, onComp
 
       if (data.status === 'complete') {
         onComplete()
-        setSortedItems(data.sortedItems)
+        setSortedItems(data.sortedItems || [])
       }
     } catch (error) {
       alert('Error: ' + (error as Error).message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Save current in-progress ranking to server and trigger CSV download
+  const handleSaveProgress = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch(`${API_URL}/api/save-progress`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId })
+      })
+
+      const data = await response.json() as { success: boolean; path?: string; csv?: string; error?: string }
+      if (!data.success) throw new Error(data.error || 'Save failed')
+
+      const csv = data.csv || ''
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      const fname = (data.path ? data.path.split('/').pop() : `progress-${sessionId}.csv`) || `progress-${sessionId}.csv`
+      a.download = fname
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      alert('Error saving progress: ' + (error as Error).message)
     } finally {
       setLoading(false)
     }
@@ -98,7 +129,7 @@ export default function RankingScreen({ sessionId, fieldnames, itemCount, onComp
   const leftItem = ranking.leftItem || {}
   const rightItem = ranking.rightItem || {}
   const itemsDone = ranking.itemsDone || 0
-  const totalItems = ranking.totalItems || 0
+  const totalItems = ranking.totalItems || itemCount || 0
   const comparisons = ranking.comparisons || 0
 
   return (
@@ -173,7 +204,8 @@ export default function RankingScreen({ sessionId, fieldnames, itemCount, onComp
           className="btn-secondary"
           style={{ padding: '7px 15px', fontSize: '10px' }}
           variant={"contained"}
-          disabled={true}>
+          onClick={handleSaveProgress}
+          disabled={loading}>
           💾 Save Progress
         </Button>
       </Grid>

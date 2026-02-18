@@ -7,6 +7,7 @@ interface Props {
 
 export default function FileSelection({ onFileSelect }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const loadInputRef = useRef<HTMLInputElement>(null)
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
   const handleDemoData = async () => {
@@ -61,6 +62,32 @@ Item 10,Tenth item,7.8`
       onFileSelect(data.sessionId, data.itemCount, data.fieldnames)
     } catch (error) {
       alert('Error uploading file: ' + (error as Error).message)
+    }
+  }
+
+  // Load progress CSV (resume a previously-saved session)
+  const handleLoadProgress = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const response = await fetch(`${API_URL}/api/load-progress`, {
+        method: 'POST',
+        body: formData
+      })
+
+      const data = await response.json()
+      if (data.error) {
+        alert('Error: ' + data.error)
+        return
+      }
+
+      onFileSelect(data.sessionId, data.itemCount, data.fieldnames)
+    } catch (error) {
+      alert('Error loading progress file: ' + (error as Error).message)
     }
   }
 
@@ -142,20 +169,27 @@ Item 10,Tenth item,7.8`
           }}>
 
           <Typography variant='h3' sx={{mb:1}}>
-            Coming Soon
+            ⤴️ Load Progress
           </Typography>
 
           <Typography variant="body1" sx={{mb:1}}>
-            Continue a previous ranking session
+            Continue a previous ranking session (upload saved progress CSV)
           </Typography>
           <Button
             className="btn-success"
             style={{ width: '100%' }}
-            disabled
+            onClick={() => loadInputRef.current?.click()}
             variant='contained'
           >
-            Coming Soon
+            Load Progress CSV
           </Button>
+          <input
+            ref={loadInputRef}
+            type="file"
+            accept=".csv"
+            onChange={handleLoadProgress}
+            style={{ display: 'none' }}
+          />
         </Box>
       </Grid>
 
