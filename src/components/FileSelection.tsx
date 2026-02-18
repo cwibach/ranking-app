@@ -2,11 +2,18 @@ import { Box, Button, Grid, Typography } from '@mui/material'
 import { useRef } from 'react'
 
 interface Props {
-  onFileSelect: (sessionId: string, itemCount: number, fieldnames: string[]) => void
+  onFileSelect: (
+    sessionId: string,
+    itemCount: number,
+    fieldnames: string[],
+    initialState?: 'file-selection' | 'ranking-options' | 'ranking' | 'results',
+    sortedItems?: { [key: string]: string }[]
+  ) => void
 }
 
 export default function FileSelection({ onFileSelect }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const inprogressInputRef = useRef<HTMLInputElement>(null)
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
   const handleDemoData = async () => {
@@ -61,6 +68,39 @@ Item 10,Tenth item,7.8`
       onFileSelect(data.sessionId, data.itemCount, data.fieldnames)
     } catch (error) {
       alert('Error uploading file: ' + (error as Error).message)
+    }
+  }
+
+  const handleLoadInProgress = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const response = await fetch(`${API_URL}/api/load-inprogress`, {
+        method: 'POST',
+        body: formData
+      })
+
+      const data = await response.json()
+      if (data.error) {
+        alert('Error: ' + data.error)
+        return
+      }
+
+      // Decide initial UI state based on server response
+      if (data.status === 'ranking' || data.status === 'ready-to-insert') {
+        onFileSelect(data.sessionId, data.itemCount ?? 0, data.fieldnames ?? [], 'ranking')
+      } else if (data.status === 'complete') {
+        // If server reports complete, pass sortedItems if available (server will include when complete)
+        onFileSelect(data.sessionId, data.itemCount ?? 0, data.fieldnames ?? [], 'results', data.sortedItems)
+      } else {
+        onFileSelect(data.sessionId, data.itemCount ?? 0, data.fieldnames ?? [], 'ranking-options')
+      }
+    } catch (error) {
+      alert('Error loading in-progress file: ' + (error as Error).message)
     }
   }
 
@@ -142,20 +182,27 @@ Item 10,Tenth item,7.8`
           }}>
 
           <Typography variant='h3' sx={{mb:1}}>
-            Coming Soon
+            🔁 Continue Previous
           </Typography>
 
           <Typography variant="body1" sx={{mb:1}}>
-            Continue a previous ranking session
+            Upload an in-progress CSV to resume without repeating comparisons
           </Typography>
           <Button
             className="btn-success"
             style={{ width: '100%' }}
-            disabled
+            onClick={() => inprogressInputRef.current?.click()}
             variant='contained'
           >
-            Coming Soon
+            Continue Session
           </Button>
+          <input
+            ref={inprogressInputRef}
+            type="file"
+            accept=".csv"
+            onChange={handleLoadInProgress}
+            style={{ display: 'none' }}
+          />
         </Box>
       </Grid>
 
