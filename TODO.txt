@@ -1,0 +1,5 @@
+1. Make final ranking results in a scrollable box so buttons are always visible at bottom of screen
+2. Make colour theming so few options of colours for buttons
+3. Figure out how to style boxes (borders and if they are visible)
+4. Allow saving of results
+5. Allow resuming from save-state

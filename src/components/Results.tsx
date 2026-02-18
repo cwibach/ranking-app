@@ -48,7 +48,7 @@ export default function Results({ sessionId, onNewRanking, sortedItems }: Props)
   return (
     <Grid container spacing={2} justifyContent={"center"}>
       <Grid size={12}>
-        <Typography variant='h2'>
+        <Typography variant='h2' fontWeight={"bold"}>
           🏆 Your Ranked Results
         </Typography>
       </Grid>
