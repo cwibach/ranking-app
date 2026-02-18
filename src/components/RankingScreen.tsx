@@ -91,50 +91,6 @@ export default function RankingScreen({ sessionId, fieldnames, itemCount, onComp
             Loading items
           </Typography>
         </Grid>
-
-        <Grid size={12} justifyContent={"center"}>
-          <Box className="two-column">
-            {/* Left Panel */}
-            <Box className="comparison-panel left">
-              <Typography className="panel-header left">← Left Option</Typography>
-              <Box className="panel-content">
-                <Typography className="panel-header left">← Loading left option</Typography>
-              </Box>
-              <Button
-                className="btn-success panel-button"
-                disabled={true}
-                variant={"contained"}
-              >
-                ✓ PREFER LEFT
-              </Button>
-            </Box>
-
-            {/* Right Panel */}
-            <Box className="comparison-panel right">
-              <Typography className="panel-header right">Right Option →</Typography>
-              <Box className="panel-content">
-                <Typography className="panel-header left">← Loading right option</Typography>
-              </Box>
-              <Button
-                className="btn-accent panel-button"
-                disabled={true}
-                variant={"contained"}
-              >
-                PREFER RIGHT ✓
-              </Button>
-            </Box>
-          </Box>
-
-          <Box style={{ marginTop: '20px' }}>
-            <Button 
-            className="btn-secondary" 
-            style={{ padding: '7px 15px', fontSize: '10px' }}
-            variant={"contained"}
-            disabled={true}>
-              💾 Save Progress
-            </Button>
-          </Box>
-        </Grid>
       </Grid>
     )
   }
@@ -146,68 +102,80 @@ export default function RankingScreen({ sessionId, fieldnames, itemCount, onComp
   const comparisons = ranking.comparisons || 0
 
   return (
-    <Grid container spacing={2} justifyContent={"space-evenly"}>
+    <Grid container justifyContent={"space-evenly"}>
       <Grid size={12} justifyContent={"center"}>
-        <Typography variant='h2'>
+        <Typography variant='h2' sx={{mb:1}}>
           Select Preferred Option
         </Typography>
-        <Typography variant="body1">
+        <Typography variant="body1" sx={{mb:2}}>
           Item {itemsDone + 1} of {totalItems} | Comparisons: {comparisons}
         </Typography>
       </Grid>
 
-      <Grid size={12} justifyContent={"center"}>
-        <Box className="two-column">
-          {/* Left Panel */}
-          <Box className="comparison-panel left">
-            <Typography className="panel-header left">← Left Option</Typography>
-            <Box className="panel-content">
-              {fieldnames.map((field) => (
-                <div key={field} className="item-field">
-                  <Typography className="item-field-label">{field}:</Typography>
-                  <Typography className="item-field-value">{leftItem[field] || 'N/A'}</Typography>
-                </div>
-              ))}
-            </Box>
-            <Button
-              className="btn-success panel-button"
-              onClick={() => handleChoice(true)}
-              variant={"contained"}
-            >
-              ✓ PREFER LEFT
-            </Button>
-          </Box>
-
-          {/* Right Panel */}
-          <Box className="comparison-panel right">
-            <Typography className="panel-header right">Right Option →</Typography>
-            <Box className="panel-content">
-              {fieldnames.map((field) => (
-                <div key={field} className="item-field">
-                  <Typography className="item-field-label">{field}:</Typography>
-                  <Typography className="item-field-value">{rightItem[field] || 'N/A'}</Typography>
-                </div>
-              ))}
-            </Box>
-            <Button
-              className="btn-accent panel-button"
-              onClick={() => handleChoice(false)}
-              variant={"contained"}
-            >
-              PREFER RIGHT ✓
-            </Button>
-          </Box>
+      {/* Left Panel */}
+      <Grid size={6} className="comparison-panel left">
+        <Box className="panel-content"
+          sx={{
+            p: 1,
+            border: "1px dashed grey",
+            ml: 1
+          }}>
+          <Typography className="panel-header left" variant='h4'  sx={{mb:2}}>← Left Option</Typography>
+          {fieldnames.map((field) => (
+            <div key={field} className="item-field">
+              <Typography className="item-field-label" variant='body1' sx={{mb:1}}>
+                <b>{field}:</b> {leftItem[field] || 'N/A'}
+              </Typography>
+            </div>
+          ))}
+          <Button
+            className="btn-success panel-button"
+            onClick={() => handleChoice(true)}
+            variant={"contained"}
+            sx={{mt:1}}
+          >
+            ✓ PREFER LEFT
+          </Button>
         </Box>
 
-        <Box style={{ marginTop: '20px' }}>
-          <Button 
-          className="btn-secondary" 
+      </Grid>
+
+      {/* Right Panel */}
+      <Grid size={6} className="comparison-panel right">
+        <Box className="panel-content"
+          sx={{
+            p: 1,
+            border: "1px dashed grey",
+            ml: 1
+          }}>
+          <Typography className="panel-header right" variant='h4' sx={{mb:2}}>Right Option →</Typography>
+          {fieldnames.map((field) => (
+            <div key={field} className="item-field">
+              <Typography className="item-field-label" variant='body1' sx={{mb:1}}>
+                <b>{field}:</b> {rightItem[field] || 'N/A'}
+              </Typography>
+            </div>
+          ))}
+          <Button
+            className="btn-accent panel-button"
+            onClick={() => handleChoice(false)}
+            variant={"contained"}
+            sx={{mt:1}}
+          >
+            PREFER RIGHT ✓
+          </Button>
+        </Box>
+      </Grid>
+
+      <Grid size={12}>
+        <Button
+          sx={{mt:5}}
+          className="btn-secondary"
           style={{ padding: '7px 15px', fontSize: '10px' }}
           variant={"contained"}
           disabled={true}>
-            💾 Save Progress
-          </Button>
-        </Box>
+          💾 Save Progress
+        </Button>
       </Grid>
     </Grid>
   )

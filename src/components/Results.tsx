@@ -48,30 +48,38 @@ export default function Results({ sessionId, onNewRanking, sortedItems }: Props)
   return (
     <Grid container spacing={2} justifyContent={"center"}>
       <Grid size={12}>
-        <Typography variant='h2'>
-          Ranking Complete
+        <Typography variant='h2' fontWeight={"bold"}>
+          🏆 Your Ranked Results
         </Typography>
       </Grid>
 
-      <Grid size={11}>
-        <Typography className="card-title">🏆 Your Ranked Results</Typography>
-        <Typography className="card-description">Items ranked from most to least preferred</Typography>
+      <Grid size={12}>
+        <Typography className="card-description" sx={{mb:1}}>Items ranked from most to least preferred</Typography>
 
-        <Box className="itemlist">
+        <Box className="itemlist" sx={{
+            border: "1px dashed grey",
+            ml: 1
+          }}>
           <FinalItemList itemList={sortedItems} />
         </Box>
 
-        <Box className="btn-group">
+        <Box className="btn-group" sx={{
+            p: 1,
+            border: "1px dashed grey",
+            ml: 1
+          }}>
           <Button 
           className="btn-accent" 
           onClick={handleDownload}
-          variant={"contained"}>
+          variant={"contained"}
+          sx={{mr:2}}>
             💾 Save Results to CSV
           </Button>
           <Button 
           className="btn-primary" 
           onClick={onNewRanking}
-          variant={"contained"}>
+          variant={"contained"}
+          sx={{mr:2}}>
             🔄 New Ranking
           </Button>
           <Button
@@ -81,7 +89,7 @@ export default function Results({ sessionId, onNewRanking, sortedItems }: Props)
               onNewRanking()
             }}
             variant={"contained"}
-          >
+          sx={{mr:2}}>
             ❌ Exit
           </Button>
         </Box>

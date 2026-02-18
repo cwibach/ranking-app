@@ -67,20 +67,25 @@ Item 10,Tenth item,7.8`
   return (
     <Grid container spacing={2} justifyContent={"space-evenly"}>
       <Grid size={12} justifyContent={"center"}>
-        <Typography variant='h2'>
+        <Typography variant='h2' sx={{mb:2}} fontWeight={"bold"}>
           Ranking Application
         </Typography>
-        <Typography variant="body1">
+        <Typography variant="body1" sx={{mb:1}}>
           Select a CSV file or use demo data to start ranking
         </Typography>
       </Grid>
 
       <Grid size={4}>
-        <Box alignItems="center" sx={{ p: 1, border: "1px dashed grey" }}>
-          <Typography variant='h3'>
+        <Box alignItems="center"
+          sx={{
+            p: 1,
+            border: "1px dashed grey",
+            ml: 1
+          }}>
+          <Typography variant='h3' sx={{mb:1}}>
             📁 Load CSV
           </Typography>
-          <Typography variant="body1">
+          <Typography variant="body1" sx={{mb:1}}>
             Upload a CSV file with items to rank
           </Typography>
           <Button
@@ -102,12 +107,18 @@ Item 10,Tenth item,7.8`
       </Grid>
 
       <Grid size={4}>
-        <Box sx={{ p: 1, border: "1px dashed grey" }}>
-          <Typography variant='h3'>
+        <Box alignItems="center"
+          sx={{
+            p: 1,
+            border: "1px dashed grey",
+            ml: 1
+          }}>
+
+          <Typography variant='h3' sx={{mb:1}}>
             Demo Data
           </Typography>
 
-          <Typography variant="body1">
+          <Typography variant="body1" sx={{mb:1}}>
             Use sample data to see how it works
           </Typography>
 
@@ -123,12 +134,18 @@ Item 10,Tenth item,7.8`
       </Grid>
 
       <Grid size={4}>
-        <Box sx={{ p: 1, border: "1px dashed grey" }}>
-          <Typography variant='h3'>
+        <Box alignItems="center"
+          sx={{
+            p: 1,
+            border: "1px dashed grey",
+            ml: 1
+          }}>
+
+          <Typography variant='h3' sx={{mb:1}}>
             Coming Soon
           </Typography>
 
-          <Typography variant="body1">
+          <Typography variant="body1" sx={{mb:1}}>
             Continue a previous ranking session
           </Typography>
           <Button
