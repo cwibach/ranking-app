@@ -45,12 +45,13 @@ cd ..
 
 ### Development
 
-Start the backend server (in one terminal):
+Start the frontend dev server (in one terminal):
 ```bash
-npm run dev:server
+npm run dev
 ```
 
-Start the frontend dev server (in another terminal):
+Start the backend server (in another terminal):
+Navigate to the server folder
 ```bash
 npm run dev
 ```
