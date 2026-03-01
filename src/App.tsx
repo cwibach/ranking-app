@@ -17,10 +17,31 @@ function App() {
   const [fieldnames, setFieldnames] = useState<string[]>([])
   const [sortedItems, setSortedItems] = useState<Item[]>([])
 
-  const handleFileSelect = (newSessionId: string, count: number, fields: string[]) => {
+  const handleFileSelect = (
+    newSessionId: string,
+    count: number,
+    fields: string[],
+    initialState?: 'file-selection' | 'ranking-options' | 'ranking' | 'results',
+    initialSortedItems?: Item[]
+  ) => {
     setSessionId(newSessionId)
     setItemCount(count)
     setFieldnames(fields)
+
+    if (initialSortedItems && initialSortedItems.length > 0) {
+      setSortedItems(initialSortedItems)
+    }
+
+    if (initialState === 'ranking') {
+      setAppState('ranking')
+      return
+    }
+
+    if (initialState === 'results') {
+      setAppState('results')
+      return
+    }
+
     setAppState('ranking-options')
   }
 
@@ -61,7 +82,6 @@ function App() {
           sessionId={sessionId}
           onComplete={handleRankingComplete}
           fieldnames={fieldnames}
-          itemCount={itemCount}
           setSortedItems={handleSortedItems}
         />
       )}
