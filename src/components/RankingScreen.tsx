@@ -20,18 +20,30 @@ interface RankingResponse {
 interface Props {
   sessionId: string
   fieldnames: string[]
-  itemCount: number
   onComplete: () => void
-  setSortedItems: ([]: Item) => void
+  setSortedItems: (sortedItems: Item[]) => void
+  // when resuming from a saved file the server will send a partial
+  // RankingResponse so we can show the correct comparison without
+  // immediately posting another /compare call
+  initialRanking?: RankingResponse
 }
 
-export default function RankingScreen({ sessionId, fieldnames, itemCount, onComplete, setSortedItems }: Props) {
+export default function RankingScreen({ sessionId, fieldnames, onComplete, setSortedItems, initialRanking }: Props) {
   const [ranking, setRanking] = useState<RankingResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
   useEffect(() => {
-    fetchNextComparison()
+    // if we already got an initial ranking payload from the parent (via
+    // FileSelection/load-inprogress) use it instead of firing a bogus
+    // compare request; otherwise kick off the flow by asking the server for
+    // the "next" comparison even though no choice has been made yet.
+    if (initialRanking) {
+      setRanking(initialRanking)
+      setLoading(false)
+    } else {
+      fetchNextComparison()
+    }
   }, [])
 
   const fetchNextComparison = async () => {
@@ -48,7 +60,7 @@ export default function RankingScreen({ sessionId, fieldnames, itemCount, onComp
 
       if (data.status === 'complete') {
         onComplete()
-        setSortedItems(data.sortedItems)
+        setSortedItems(data.sortedItems ?? [])
       }
     } catch (error) {
       alert('Error: ' + (error as Error).message)
@@ -71,12 +83,41 @@ export default function RankingScreen({ sessionId, fieldnames, itemCount, onComp
 
       if (data.status === 'complete') {
         onComplete()
-        setSortedItems(data.sortedItems)
+        setSortedItems(data.sortedItems ?? [])
       }
     } catch (error) {
       alert('Error: ' + (error as Error).message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSaveProgress = async () => {
+    try {
+      if (!sessionId) {
+        alert('No active session to save')
+        return
+      }
+
+      const response = await fetch(`${API_URL}/api/save-progress`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId })
+      })
+
+      if (!response.ok) throw new Error('Failed to generate progress CSV')
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'inprogress_results.csv'
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      alert('Error saving progress: ' + (error as Error).message)
     }
   }
 
@@ -173,7 +214,7 @@ export default function RankingScreen({ sessionId, fieldnames, itemCount, onComp
           className="btn-secondary"
           style={{ padding: '7px 15px', fontSize: '10px' }}
           variant={"contained"}
-          disabled={true}>
+          onClick={handleSaveProgress}>
           💾 Save Progress
         </Button>
       </Grid>

@@ -61,6 +61,98 @@ app.post('/api/upload-csv', upload.single('file'), (req, res) => {
   }
 });
 
+// Load in-progress CSV (first row: sortedCount,binaryLow,binaryHigh; then header + ordered rows)
+app.post('/api/load-inprogress', upload.single('file'), (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No file provided' });
+
+    // read the file as UTF-8 and normalize CRLF to LF
+    const raw = req.file.buffer.toString('utf8').replace(/\r\n/g, '\n').trim();
+    if (!raw) return res.status(400).json({ error: 'Empty file' });
+
+    // split only on the very first newline so that quoted fields containing
+    // newlines are not broken apart.  previous implementation used
+    // `split('\n')` which destroys any record containing an embedded newline
+    // and leads to parse errors when `csv-parse` is invoked.
+    const firstNewline = raw.indexOf('\n');
+    if (firstNewline === -1) {
+      return res.status(400).json({ error: 'Invalid in-progress CSV format' });
+    }
+
+    const headerLine = raw.slice(0, firstNewline).trim();
+    const restCSV = raw.slice(firstNewline + 1);
+
+    const firstParts = headerLine.split(',').map(s => s.trim());
+    if (firstParts.length < 3) {
+      return res.status(400).json({ error: 'First row must contain three integers: sortedCount,binaryLow,binaryHigh' });
+    }
+
+    const sortedCount = parseInt(firstParts[0], 10);
+    const binaryLow = parseInt(firstParts[1], 10);
+    const binaryHigh = parseInt(firstParts[2], 10);
+
+    if ([sortedCount, binaryLow, binaryHigh].some(v => Number.isNaN(v))) {
+      return res.status(400).json({ error: 'First row values must be integers' });
+    }
+
+    // parse the remainder of the CSV in one shot; `csv-parse` will handle
+    // quoted values (including embedded newlines) correctly now that we
+    // haven't mangled the input.
+    const items = parse(restCSV, { columns: true, skip_empty_lines: true });
+
+    if (sortedCount < 0 || sortedCount > items.length) return res.status(400).json({ error: 'sortedCount out of range' });
+    if (binaryLow < 0 || binaryHigh < 0 || binaryLow > binaryHigh || binaryHigh > sortedCount) {
+      return res.status(400).json({ error: 'binaryLow/binaryHigh values are invalid for the provided sortedCount' });
+    }
+
+    const sessionId = Date.now().toString();
+    const fieldnames = items.length > 0 ? Object.keys(items[0]) : [];
+
+    const sortedItems = items.slice(0, sortedCount);
+    let currentItem = null;
+    const unsortedItems = [];
+
+    if (sortedCount < items.length) {
+      currentItem = items[sortedCount];
+      for (let i = sortedCount + 1; i < items.length; i++) unsortedItems.push(i);
+    }
+
+    rankingStates.set(sessionId, {
+      items,
+      fieldnames,
+      sortedItems,
+      unsortedItems,
+      currentItem,
+      comparisonCount: 0,
+      binaryLow,
+      binaryHigh,
+      randomize: false
+    });
+
+    if (currentItem === null) {
+      return res.json({ status: 'complete', sessionId, itemCount: items.length, fieldnames, sortedItems });
+    }
+
+    if (binaryLow < binaryHigh) {
+      const mid = Math.floor((binaryLow + binaryHigh) / 2);
+      return res.json({
+        status: 'ranking',
+        sessionId,
+        leftItem: currentItem,
+        rightItem: sortedItems[mid],
+        itemsDone: items.length - unsortedItems.length - 1,
+        totalItems: items.length,
+        comparisons: 0,
+        fieldnames
+      });
+    }
+
+    return res.json({ status: 'ready-to-insert', sessionId, itemCount: items.length, fieldnames, sortedCount, binaryLow, binaryHigh });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 // Start ranking
 app.post('/api/start-ranking', (req, res) => {
   try {
@@ -188,6 +280,38 @@ app.post('/api/save-results', (req, res) => {
 
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename="ranked_results.csv"');
+    res.send(csv);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Save in-progress state to CSV (first row: sortedCount,binaryLow,binaryHigh; then header + ordered rows)
+app.post('/api/save-progress', (req, res) => {
+  try {
+    const { sessionId } = req.body;
+    const state = rankingStates.get(sessionId);
+
+    if (!state) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    const sortedCount = state.sortedItems.length;
+    const binaryLow = typeof state.binaryLow === 'number' ? state.binaryLow : 0;
+    const binaryHigh = typeof state.binaryHigh === 'number' ? state.binaryHigh : 0;
+
+    // Build ordered list: already-sorted, currentItem (if any), then remaining unsorted items in queue order
+    const ordered = [];
+    for (const it of state.sortedItems) ordered.push(it);
+    if (state.currentItem) ordered.push(state.currentItem);
+    for (const idx of state.unsortedItems) ordered.push(state.items[idx]);
+
+    const csvBody = stringify(ordered, { header: true, columns: state.fieldnames });
+    const headerLine = `${sortedCount},${binaryLow},${binaryHigh}\n`;
+    const csv = headerLine + csvBody;
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="inprogress_results.csv"');
     res.send(csv);
   } catch (error) {
     res.status(500).json({ error: error.message });
