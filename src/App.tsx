@@ -12,7 +12,7 @@ interface Item {
 
 // mirror the response shape used by the server for the ranking endpoint
 interface RankingResponse {
-  status: 'ranking' | 'complete'
+  status: 'ranking' | 'complete' | 'ready-to-insert'
   sessionId: string
   leftItem?: Item
   rightItem?: Item
@@ -70,7 +70,13 @@ function App() {
     setSortedItems(sortedItems)
   }
 
-  const handleStartRanking = () => {
+  // when we start ranking we may already have the first comparison
+  // returned by the server, so we pass that payload along to the
+  // ranking screen to avoid an extra bogus request.
+  const handleStartRanking = (initial?: RankingResponse) => {
+    if (initial) {
+      setInitialRanking(initial)
+    }
     setAppState('ranking')
   }
 
@@ -83,6 +89,8 @@ function App() {
     setSessionId('')
     setItemCount(0)
     setFieldnames([])
+    setInitialRanking(undefined)
+    setSortedItems([])
   }
 
   return (

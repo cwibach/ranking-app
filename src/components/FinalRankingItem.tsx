@@ -16,7 +16,8 @@ interface Props2 {
 }
 
 export const ExpandedItemInfo = ({item, hideView}: Props) => {
-    const [firstKey, firstValue] = Object.entries(item)[0]
+    // we only need the value for the header; ignore the key
+    const [_firstKey, firstValue] = Object.entries(item)[0] || ['','']
     return(
         <Box sx={{
             p: 1,
@@ -46,8 +47,11 @@ export const ExpandedItemInfo = ({item, hideView}: Props) => {
 }
 
 export const UnExpandedItemInfo = ({item, index, expandView}: Props2) => {
-    const [firstKey, firstValue] = Object.entries(item)[0]
-    const newItem = item
+    const entries = Object.entries(item)
+    // firstKey is only used for readability; prefix with _ to avoid unused
+    // variable lint errors
+    const [__firstKey, firstValue] = entries.length > 0 ? entries[0] : ['','']
+    // newItem was unused; remove it to clean lint warnings
 
     return(
         <Box sx={{

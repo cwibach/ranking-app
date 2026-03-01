@@ -51,6 +51,9 @@ Item 10,Tenth item,7.8`
     const file = event.target.files?.[0]
     if (!file) return
 
+    // clear input so user can reselect the same file later
+    event.target.value = ''
+
     const formData = new FormData()
     formData.append('file', file)
 
@@ -76,6 +79,9 @@ Item 10,Tenth item,7.8`
     const file = event.target.files?.[0]
     if (!file) return
 
+    // reset input value so same file may be picked again
+    event.target.value = ''
+
     const formData = new FormData()
     formData.append('file', file)
 
@@ -91,8 +97,11 @@ Item 10,Tenth item,7.8`
         return
       }
 
-      // Decide initial UI state based on server response
-      if (data.status === 'ranking' || data.status === 'ready-to-insert') {
+      // Decide initial UI state based on server response.  after the
+      // change on the server, `/load-inprogress` directly returns the next
+      // comparison or a complete state, so we only need to differentiate
+      // between still-ranking and done.
+      if (data.status === 'ranking') {
         onFileSelect(
           data.sessionId,
           data.itemCount ?? 0,
@@ -102,7 +111,6 @@ Item 10,Tenth item,7.8`
           data // pass whole response so RankingScreen can initialize
         )
       } else if (data.status === 'complete') {
-        // If server reports complete, pass sortedItems if available (server will include when complete)
         onFileSelect(
           data.sessionId,
           data.itemCount ?? 0,
@@ -111,6 +119,7 @@ Item 10,Tenth item,7.8`
           data.sortedItems
         )
       } else {
+        // fall back to ranking-options if something unexpected comes back
         onFileSelect(data.sessionId, data.itemCount ?? 0, data.fieldnames ?? [], 'ranking-options')
       }
     } catch (error) {

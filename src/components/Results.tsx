@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react'
 import { Box, Grid, Typography, Button } from '@mui/material'
 import FinalItemList from './FinalRankingList.tsx'
 
@@ -77,7 +76,7 @@ export default function Results({ sessionId, onNewRanking, sortedItems }: Props)
           </Button>
           <Button 
           className="btn-primary" 
-          onClick={onNewRanking}
+          onClick={() => { handleExit(); onNewRanking(); }}
           variant={"contained"}
           sx={{mr:2}}>
             🔄 New Ranking

@@ -129,25 +129,11 @@ app.post('/api/load-inprogress', upload.single('file'), (req, res) => {
       randomize: false
     });
 
-    if (currentItem === null) {
-      return res.json({ status: 'complete', sessionId, itemCount: items.length, fieldnames, sortedItems });
-    }
-
-    if (binaryLow < binaryHigh) {
-      const mid = Math.floor((binaryLow + binaryHigh) / 2);
-      return res.json({
-        status: 'ranking',
-        sessionId,
-        leftItem: currentItem,
-        rightItem: sortedItems[mid],
-        itemsDone: items.length - unsortedItems.length - 1,
-        totalItems: items.length,
-        comparisons: 0,
-        fieldnames
-      });
-    }
-
-    return res.json({ status: 'ready-to-insert', sessionId, itemCount: items.length, fieldnames, sortedCount, binaryLow, binaryHigh });
+    // we purposely avoid duplicating the logic from showRankingScreen; the
+    // helper can handle every case (complete, ranking, and the insertion
+    // step when binaryLow>=binaryHigh).  returning its result keeps the
+    // frontend simple and consistent with new RankingResponse union.
+    return showRankingScreen(res, rankingStates.get(sessionId), sessionId);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -166,15 +152,16 @@ app.post('/api/start-ranking', (req, res) => {
     state.randomize = randomize;
     
     if (randomize) {
+      // Fisher–Yates shuffle to randomize queue order.  the previous
+      // implementation included a stray `sort` call wrapped in a random
+      // conditional which essentially undid the shuffle 90% of the time;
+      // that was causing the "randomize" option to appear to do nothing.
       for (let i = state.unsortedItems.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [state.unsortedItems[i], state.unsortedItems[j]] = [
           state.unsortedItems[j],
           state.unsortedItems[i]
         ];
-      }
-      if (Math.random() < 0.9) {
-        state.unsortedItems.sort((a, b) => a - b);
       }
     }
 
@@ -260,10 +247,9 @@ app.post('/api/compare', (req, res) => {
     state.comparisonCount += 1;
     const mid = getBinarySearchMiddle(state);
 
-    if (Math.random() < 0.2) {
-      currentBetter = !currentBetter;
-    }
-
+    // apply the user's choice directly without any artificial noise; the
+    // previous random flip (20% chance) caused confusing behavior where the
+    // server ignored the selection.  users expect deterministic ranking.
     if (currentBetter) {
       state.binaryHigh = mid;
     } else {

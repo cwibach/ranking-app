@@ -6,7 +6,11 @@ interface Item {
 }
 
 interface RankingResponse {
-  status: 'ranking' | 'complete'
+  // server can also return "ready-to-insert" when a previously saved
+  // session has binaryLow>=binaryHigh but the client hasn't performed the
+  // insertion step yet.  the frontend treats it almost like a ranking
+  // response but needs to request the next comparison immediately.
+  status: 'ranking' | 'complete' | 'ready-to-insert'
   sessionId: string
   leftItem?: Item
   rightItem?: Item
@@ -41,9 +45,21 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
     if (initialRanking) {
       setRanking(initialRanking)
       setLoading(false)
+      // if session was already complete we need to finish immediately
+      if (initialRanking.status === 'complete') {
+        onComplete()
+        setSortedItems(initialRanking.sortedItems ?? [])
+      }
+      // if the server returned ready-to-insert the next comparison hasn’t
+      // been generated yet; ask for one just like we would at startup
+      else if (initialRanking.status === 'ready-to-insert') {
+        fetchNextComparison()
+      }
     } else {
       fetchNextComparison()
     }
+    // NOTE: we deliberately omit dependencies; component is remounted per
+    // session so we don't want to re-run when parent state changes.
   }, [])
 
   const fetchNextComparison = async () => {
@@ -70,13 +86,14 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
   }
 
   const handleChoice = async (currentBetter: boolean) => {
-    const buggedChoice = !currentBetter
+    // previous implementation inverted the user’s choice; send exactly what
+    // the button indicates.
     setLoading(true)
     try {
       const response = await fetch(`${API_URL}/api/compare`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, currentBetter: buggedChoice })
+        body: JSON.stringify({ sessionId, currentBetter })
       })
 
       const data = await response.json() as RankingResponse
@@ -139,9 +156,11 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
 
   const leftItem = ranking.leftItem || {}
   const rightItem = ranking.rightItem || {}
-  const itemsDone = ranking.itemsDone || 0
-  const totalItems = ranking.totalItems || 0
-  const comparisons = ranking.comparisons || 0
+  // ensure we don’t show a negative count if the server didn’t include
+  // it or if math above produced -1 (e.g. first comparison)
+  const itemsDone = Math.max(ranking.itemsDone ?? 0, 0)
+  const totalItems = ranking.totalItems ?? 0
+  const comparisons = ranking.comparisons ?? 0
 
   return (
     <Grid container justifyContent={"space-evenly"}>
@@ -175,6 +194,7 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
             onClick={() => handleChoice(true)}
             variant={"contained"}
             sx={{mt:1}}
+            disabled={loading}
           >
             ✓ PREFER LEFT
           </Button>
@@ -203,6 +223,7 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
             onClick={() => handleChoice(false)}
             variant={"contained"}
             sx={{mt:1}}
+            disabled={loading}
           >
             PREFER RIGHT ✓
           </Button>

@@ -4,8 +4,23 @@ import { Box, Grid, Typography, Button, Checkbox, FormControlLabel} from '@mui/m
 interface Props {
   itemCount: number
   sessionId: string
-  onStart: () => void
+  // when we start we will receive the first comparison from the
+  // backend; handing it back to the parent avoids dropping it and
+  // having RankingScreen request an extra /compare immediately.
+  onStart: (initialResponse?: RankingResponse) => void
   onBack: () => void
+}
+
+interface RankingResponse {
+  status: 'ranking' | 'complete'
+  sessionId: string
+  leftItem?: any
+  rightItem?: any
+  itemsDone?: number
+  totalItems?: number
+  comparisons?: number
+  fieldnames?: string[]
+  sortedItems?: any[]
 }
 
 export default function RankingOptions({ itemCount, sessionId, onStart, onBack }: Props) {
@@ -24,7 +39,8 @@ export default function RankingOptions({ itemCount, sessionId, onStart, onBack }
         throw new Error('Failed to start ranking')
       }
 
-      onStart()
+      const data = await response.json() as RankingResponse
+      onStart(data)
     } catch (error) {
       alert('Error: ' + (error as Error).message)
     }
@@ -73,7 +89,9 @@ export default function RankingOptions({ itemCount, sessionId, onStart, onBack }
             className="btn-success"
             onClick={handleStart}
             variant={"contained"}
-            sx={{ml:5}}>
+            sx={{ml:5}}
+            disabled={itemCount === 0}
+          >
             Start Ranking →
           </Button>
         </Box>

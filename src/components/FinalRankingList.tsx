@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { ExpandedItemInfo, UnExpandedItemInfo } from "./FinalRankingItem.tsx"
 
 interface Item {
@@ -23,18 +23,20 @@ export default function FinalItemList({itemList}: Props) {
     return(
         <div>
             {itemList.map((item, index) => {
+                // use index as key because CSV items may lack unique ids; avoid
+                // warning by providing something stable per render
                 return(
-                    <div>
-                        {(expanded === index) ? (<>
+                    <div key={index}>
+                        {(expanded === index) ? (
                             <ExpandedItemInfo
-                            item={item}
-                            hideView={unExpandItem}/>
-                        </>) : (<>
+                                item={item}
+                                hideView={unExpandItem}/>
+                        ) : (
                             <UnExpandedItemInfo
-                            item={item}
-                            index={index}
-                            expandView={expandItem}/>
-                        </>)}
+                                item={item}
+                                index={index}
+                                expandView={expandItem}/>
+                        )}
 
                     </div>
                 )
