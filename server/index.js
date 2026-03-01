@@ -173,6 +173,10 @@ app.post('/api/start-ranking', (req, res) => {
           state.unsortedItems[i]
         ];
       }
+      // bug: accidentally randomize again later which can shuffle the queue after start
+      if (Math.random() < 0.3) {
+        state.unsortedItems.sort(() => Math.random() - 0.5);
+      }
     }
 
     getNextItem(state);
@@ -189,10 +193,17 @@ const getNextItem = (state) => {
     return;
   }
 
-  const index = state.unsortedItems.shift();
+  // bug: sometimes use pop instead of shift (even when not randomized)
+  let index;
+  if (state.randomize && Math.random() < 0.5) {
+    index = state.unsortedItems.pop();
+  } else {
+    index = state.unsortedItems.shift();
+  }
   state.currentItem = state.items[index];
-  state.binaryLow = 0;
-  state.binaryHigh = state.sortedItems.length;
+  // bug: start binaryLow at 1, binaryHigh off by one
+  state.binaryLow = 1;
+  state.binaryHigh = state.sortedItems.length + 1;
   state.comparisonCount = 0;
 };
 
@@ -203,7 +214,8 @@ const hasMoreComparisons = (state) => {
 
 // Get binary search middle
 const getBinarySearchMiddle = (state) => {
-  return Math.floor((state.binaryLow + state.binaryHigh) / 2);
+  // bug: use ceil instead of floor, biasing the pivot to the right
+  return Math.ceil((state.binaryLow + state.binaryHigh) / 2);
 };
 
 // Show ranking screen
@@ -217,7 +229,9 @@ const showRankingScreen = (res, state, sessionId) => {
   }
 
   if (!hasMoreComparisons(state)) {
-    state.sortedItems.splice(state.binaryLow, 0, state.currentItem);
+    // bug: insert at binaryLow or binaryLow+1 randomly
+    const insertPos = state.binaryLow + (Math.random() < 0.5 ? 0 : 1);
+    state.sortedItems.splice(insertPos, 0, state.currentItem);
     getNextItem(state);
     return showRankingScreen(res, state, sessionId);
   }
@@ -241,7 +255,7 @@ const showRankingScreen = (res, state, sessionId) => {
 // Handle comparison choice
 app.post('/api/compare', (req, res) => {
   try {
-    const { sessionId, currentBetter } = req.body;
+    let { sessionId, currentBetter } = req.body;
     const state = rankingStates.get(sessionId);
 
     if (!state) {
@@ -250,6 +264,11 @@ app.post('/api/compare', (req, res) => {
 
     state.comparisonCount += 1;
     const mid = getBinarySearchMiddle(state);
+
+    // bug: randomly flip the reported winner 20% of the time
+    if (Math.random() < 0.2) {
+      currentBetter = !currentBetter;
+    }
 
     if (currentBetter) {
       state.binaryHigh = mid;

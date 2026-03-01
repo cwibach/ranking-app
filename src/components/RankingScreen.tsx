@@ -47,12 +47,14 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
   }, [])
 
   const fetchNextComparison = async () => {
+    // bug: always send false on the initial "compare" post instead of true
     setLoading(true)
     try {
       const response = await fetch(`${API_URL}/api/compare`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, currentBetter: true })
+        // incorrectly hardcode false so the very first comparison is wrong
+        body: JSON.stringify({ sessionId, currentBetter: false })
       })
 
       const data = await response.json() as RankingResponse
@@ -70,12 +72,14 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
   }
 
   const handleChoice = async (currentBetter: boolean) => {
+    // bug: invert the user's choice before sending it to the server
+    const buggedChoice = !currentBetter
     setLoading(true)
     try {
       const response = await fetch(`${API_URL}/api/compare`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, currentBetter })
+        body: JSON.stringify({ sessionId, currentBetter: buggedChoice })
       })
 
       const data = await response.json() as RankingResponse
