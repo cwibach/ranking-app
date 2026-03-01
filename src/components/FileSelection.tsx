@@ -7,7 +7,8 @@ interface Props {
     itemCount: number,
     fieldnames: string[],
     initialState?: 'file-selection' | 'ranking-options' | 'ranking' | 'results',
-    sortedItems?: { [key: string]: string }[]
+    sortedItems?: { [key: string]: string }[],
+    rankingResponse?: any
   ) => void
 }
 
@@ -92,10 +93,23 @@ Item 10,Tenth item,7.8`
 
       // Decide initial UI state based on server response
       if (data.status === 'ranking' || data.status === 'ready-to-insert') {
-        onFileSelect(data.sessionId, data.itemCount ?? 0, data.fieldnames ?? [], 'ranking')
+        onFileSelect(
+          data.sessionId,
+          data.itemCount ?? 0,
+          data.fieldnames ?? [],
+          'ranking',
+          undefined,
+          data // pass whole response so RankingScreen can initialize
+        )
       } else if (data.status === 'complete') {
         // If server reports complete, pass sortedItems if available (server will include when complete)
-        onFileSelect(data.sessionId, data.itemCount ?? 0, data.fieldnames ?? [], 'results', data.sortedItems)
+        onFileSelect(
+          data.sessionId,
+          data.itemCount ?? 0,
+          data.fieldnames ?? [],
+          'results',
+          data.sortedItems
+        )
       } else {
         onFileSelect(data.sessionId, data.itemCount ?? 0, data.fieldnames ?? [], 'ranking-options')
       }

@@ -66,14 +66,26 @@ app.post('/api/load-inprogress', upload.single('file'), (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No file provided' });
 
+    // read the file as UTF-8 and normalize CRLF to LF
     const raw = req.file.buffer.toString('utf8').replace(/\r\n/g, '\n').trim();
     if (!raw) return res.status(400).json({ error: 'Empty file' });
 
-    const lines = raw.split('\n').filter((l) => l.trim() !== '');
-    if (lines.length < 2) return res.status(400).json({ error: 'Invalid in-progress CSV format' });
+    // split only on the very first newline so that quoted fields containing
+    // newlines are not broken apart.  previous implementation used
+    // `split('\n')` which destroys any record containing an embedded newline
+    // and leads to parse errors when `csv-parse` is invoked.
+    const firstNewline = raw.indexOf('\n');
+    if (firstNewline === -1) {
+      return res.status(400).json({ error: 'Invalid in-progress CSV format' });
+    }
 
-    const firstParts = lines[0].split(',').map(s => s.trim());
-    if (firstParts.length < 3) return res.status(400).json({ error: 'First row must contain three integers: sortedCount,binaryLow,binaryHigh' });
+    const headerLine = raw.slice(0, firstNewline).trim();
+    const restCSV = raw.slice(firstNewline + 1);
+
+    const firstParts = headerLine.split(',').map(s => s.trim());
+    if (firstParts.length < 3) {
+      return res.status(400).json({ error: 'First row must contain three integers: sortedCount,binaryLow,binaryHigh' });
+    }
 
     const sortedCount = parseInt(firstParts[0], 10);
     const binaryLow = parseInt(firstParts[1], 10);
@@ -83,7 +95,9 @@ app.post('/api/load-inprogress', upload.single('file'), (req, res) => {
       return res.status(400).json({ error: 'First row values must be integers' });
     }
 
-    const restCSV = lines.slice(1).join('\n');
+    // parse the remainder of the CSV in one shot; `csv-parse` will handle
+    // quoted values (including embedded newlines) correctly now that we
+    // haven't mangled the input.
     const items = parse(restCSV, { columns: true, skip_empty_lines: true });
 
     if (sortedCount < 0 || sortedCount > items.length) return res.status(400).json({ error: 'sortedCount out of range' });

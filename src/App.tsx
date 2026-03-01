@@ -10,19 +10,34 @@ interface Item {
   [key: string]: string
 }
 
+// mirror the response shape used by the server for the ranking endpoint
+interface RankingResponse {
+  status: 'ranking' | 'complete'
+  sessionId: string
+  leftItem?: Item
+  rightItem?: Item
+  itemsDone?: number
+  totalItems?: number
+  comparisons?: number
+  fieldnames?: string[]
+  sortedItems?: Item[]
+}
+
 function App() {
   const [appState, setAppState] = useState<AppState>('file-selection')
   const [sessionId, setSessionId] = useState<string>('')
   const [itemCount, setItemCount] = useState<number>(0)
   const [fieldnames, setFieldnames] = useState<string[]>([])
   const [sortedItems, setSortedItems] = useState<Item[]>([])
+  const [initialRanking, setInitialRanking] = useState<RankingResponse | undefined>(undefined)
 
   const handleFileSelect = (
     newSessionId: string,
     count: number,
     fields: string[],
     initialState?: 'file-selection' | 'ranking-options' | 'ranking' | 'results',
-    initialSortedItems?: Item[]
+    initialSortedItems?: Item[],
+    rankingResponse?: RankingResponse
   ) => {
     setSessionId(newSessionId)
     setItemCount(count)
@@ -30,6 +45,12 @@ function App() {
 
     if (initialSortedItems && initialSortedItems.length > 0) {
       setSortedItems(initialSortedItems)
+    }
+
+    if (rankingResponse) {
+      setInitialRanking(rankingResponse)
+    } else {
+      setInitialRanking(undefined)
     }
 
     if (initialState === 'ranking') {
@@ -83,6 +104,7 @@ function App() {
           onComplete={handleRankingComplete}
           fieldnames={fieldnames}
           setSortedItems={handleSortedItems}
+          initialRanking={initialRanking}
         />
       )}
       {appState === 'results' && (

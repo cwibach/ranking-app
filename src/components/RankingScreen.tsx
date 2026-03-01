@@ -22,15 +22,28 @@ interface Props {
   fieldnames: string[]
   onComplete: () => void
   setSortedItems: (sortedItems: Item[]) => void
+  // when resuming from a saved file the server will send a partial
+  // RankingResponse so we can show the correct comparison without
+  // immediately posting another /compare call
+  initialRanking?: RankingResponse
 }
 
-export default function RankingScreen({ sessionId, fieldnames, onComplete, setSortedItems }: Props) {
+export default function RankingScreen({ sessionId, fieldnames, onComplete, setSortedItems, initialRanking }: Props) {
   const [ranking, setRanking] = useState<RankingResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
   useEffect(() => {
-    fetchNextComparison()
+    // if we already got an initial ranking payload from the parent (via
+    // FileSelection/load-inprogress) use it instead of firing a bogus
+    // compare request; otherwise kick off the flow by asking the server for
+    // the "next" comparison even though no choice has been made yet.
+    if (initialRanking) {
+      setRanking(initialRanking)
+      setLoading(false)
+    } else {
+      fetchNextComparison()
+    }
   }, [])
 
   const fetchNextComparison = async () => {
