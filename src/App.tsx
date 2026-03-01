@@ -11,8 +11,10 @@ interface Item {
 }
 
 // mirror the response shape used by the server for the ranking endpoint
+// (we also include `ready-to-insert` which is returned when a resumed
+// session needs to perform the pending insertion before continuing).
 interface RankingResponse {
-  status: 'ranking' | 'complete'
+  status: 'ranking' | 'complete' | 'ready-to-insert'
   sessionId: string
   leftItem?: Item
   rightItem?: Item
@@ -21,6 +23,9 @@ interface RankingResponse {
   comparisons?: number
   fieldnames?: string[]
   sortedItems?: Item[]
+  binaryLow?: number
+  binaryHigh?: number
+  sortedCount?: number
 }
 
 function App() {
@@ -70,7 +75,10 @@ function App() {
     setSortedItems(sortedItems)
   }
 
-  const handleStartRanking = () => {
+  const handleStartRanking = (rankingResponse?: RankingResponse) => {
+    if (rankingResponse) {
+      setInitialRanking(rankingResponse)
+    }
     setAppState('ranking')
   }
 

@@ -4,7 +4,10 @@ import { Box, Grid, Typography, Button, Checkbox, FormControlLabel} from '@mui/m
 interface Props {
   itemCount: number
   sessionId: string
-  onStart: () => void
+  // the server now returns the first comparison when the session is
+  // initialized.  propagate that payload so the ranking screen can render
+  // it directly instead of issuing a throw‑away /compare request.
+  onStart: (initialRanking?: any) => void
   onBack: () => void
 }
 
@@ -20,11 +23,14 @@ export default function RankingOptions({ itemCount, sessionId, onStart, onBack }
         body: JSON.stringify({ sessionId, randomize })
       })
 
+      const data = await response.json()
       if (!response.ok) {
-        throw new Error('Failed to start ranking')
+        throw new Error(data.error || 'Failed to start ranking')
       }
 
-      onStart()
+      // send the payload upstream so the ranking screen can initialize with
+      // the first pair rather than guessing.
+      onStart(data)
     } catch (error) {
       alert('Error: ' + (error as Error).message)
     }

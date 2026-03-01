@@ -6,7 +6,10 @@ interface Item {
 }
 
 interface RankingResponse {
-  status: 'ranking' | 'complete'
+  // server may return a few different states; `ready-to-insert` is only
+  // used when loading a paused session and the binary-search bounds are
+  // already tight.  the client simply advances the state in that case.
+  status: 'ranking' | 'complete' | 'ready-to-insert'
   sessionId: string
   leftItem?: Item
   rightItem?: Item
@@ -15,6 +18,11 @@ interface RankingResponse {
   comparisons?: number
   fieldnames?: string[]
   sortedItems?: Item[]
+  // optional debug fields that the server may include when the client is
+  // examining an in‑progress file; not used by the UI
+  binaryLow?: number
+  binaryHigh?: number
+  sortedCount?: number
 }
 
 interface Props {
@@ -34,25 +42,32 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
   useEffect(() => {
-    // if we already got an initial ranking payload from the parent (via
-    // FileSelection/load-inprogress) use it instead of firing a bogus
-    // compare request; otherwise kick off the flow by asking the server for
-    // the "next" comparison even though no choice has been made yet.
+    // If the parent supplied a payload we can avoid the first POST.
+    // When resuming from a saved session the server may tell us that the
+    // binary search bounds are already tight (`ready-to-insert`).  in that
+    // case we ask for the next comparison immediately so the server has a
+    // chance to perform the insertion and give us the next pair.
     if (initialRanking) {
       setRanking(initialRanking)
       setLoading(false)
+      if (initialRanking.status === 'ready-to-insert') {
+        fetchNextComparison()
+      }
     } else {
       fetchNextComparison()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const fetchNextComparison = async () => {
     setLoading(true)
     try {
+      // omit the `currentBetter` flag when we simply want the next pair
+      // without changing state.
       const response = await fetch(`${API_URL}/api/compare`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, currentBetter: false })
+        body: JSON.stringify({ sessionId })
       })
 
       const data = await response.json() as RankingResponse
@@ -70,13 +85,12 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
   }
 
   const handleChoice = async (currentBetter: boolean) => {
-    const buggedChoice = !currentBetter
     setLoading(true)
     try {
       const response = await fetch(`${API_URL}/api/compare`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, currentBetter: buggedChoice })
+        body: JSON.stringify({ sessionId, currentBetter })
       })
 
       const data = await response.json() as RankingResponse

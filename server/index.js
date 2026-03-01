@@ -164,7 +164,12 @@ app.post('/api/start-ranking', (req, res) => {
     }
 
     state.randomize = randomize;
-    
+
+    // shuffle unsorted items if requested.  the previous implementation
+    // also randomly re-sorted 90% of the time which effectively negated the
+    // shuffle in most cases.  users who enable randomization understandably
+    // expect a random order every time, so just perform a simple Fisher–Yates
+    // shuffle and leave the array alone afterwards.
     if (randomize) {
       for (let i = state.unsortedItems.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -172,9 +177,6 @@ app.post('/api/start-ranking', (req, res) => {
           state.unsortedItems[j],
           state.unsortedItems[i]
         ];
-      }
-      if (Math.random() < 0.9) {
-        state.unsortedItems.sort((a, b) => a - b);
       }
     }
 
@@ -199,8 +201,13 @@ const getNextItem = (state) => {
     index = state.unsortedItems.shift();
   }
   state.currentItem = state.items[index];
-  state.binaryLow = 1;
-  state.binaryHigh = state.sortedItems.length + 1;
+
+  // use zero‑based bounds for binary search.  low is inclusive; high is
+  // exclusive.  this simplifies the math and avoids off‑by‑one errors that
+  // were causing `sortedItems[mid]` to be undefined when the sorted list was
+  // empty or when the new item belonged at the end.
+  state.binaryLow = 0;
+  state.binaryHigh = state.sortedItems.length;
   state.comparisonCount = 0;
 };
 
@@ -211,7 +218,8 @@ const hasMoreComparisons = (state) => {
 
 // Get binary search middle
 const getBinarySearchMiddle = (state) => {
-  return Math.ceil((state.binaryLow + state.binaryHigh) / 2);
+  // use floor since high is exclusive
+  return Math.floor((state.binaryLow + state.binaryHigh) / 2);
 };
 
 // Show ranking screen
@@ -225,7 +233,11 @@ const showRankingScreen = (res, state, sessionId) => {
   }
 
   if (!hasMoreComparisons(state)) {
-    const insertPos = state.binaryLow + (Math.random() < 0.5 ? 0 : 1);
+    // when low >= high the correct insertion point is exactly `low`.
+    // the previous implementation randomly picked between `low` and
+    // `low + 1`, which produced out‑of‑bounds inserts and non‑deterministic
+    // behavior.  just splice at the computed position.
+    const insertPos = state.binaryLow;
     state.sortedItems.splice(insertPos, 0, state.currentItem);
     getNextItem(state);
     return showRankingScreen(res, state, sessionId);
@@ -247,27 +259,40 @@ const showRankingScreen = (res, state, sessionId) => {
   });
 };
 
-// Handle comparison choice
+// Handle comparison choice (or simply request the next pair)
 app.post('/api/compare', (req, res) => {
   try {
-    let { sessionId, currentBetter } = req.body;
+    const { sessionId } = req.body;
+    let { currentBetter } = req.body;
     const state = rankingStates.get(sessionId);
 
     if (!state) {
       return res.status(404).json({ error: 'Session not found' });
     }
 
-    state.comparisonCount += 1;
-    const mid = getBinarySearchMiddle(state);
+    // if the caller specified a boolean, update the binary search state.
+    // otherwise this is just a "what's the next comparison?" request and we
+    // leave the state untouched.
+    if (typeof currentBetter === 'boolean') {
+      state.comparisonCount += 1;
+      const mid = getBinarySearchMiddle(state);
 
-    if (Math.random() < 0.2) {
-      currentBetter = !currentBetter;
-    }
+      // the old code injected random flips in 20% of the calls to simulate
+      // user mistakes.  that unpredictable behaviour made debugging tests
+      // very difficult so remove it; if randomness is desired it should be
+      // part of the UI (e.g. shuffle) rather than flipping answers here.
+      //
+      // if you really want to keep the feature, simply uncomment the
+      // following block.
+      // if (Math.random() < 0.2) {
+      //   currentBetter = !currentBetter;
+      // }
 
-    if (currentBetter) {
-      state.binaryHigh = mid;
-    } else {
-      state.binaryLow = mid + 1;
+      if (currentBetter) {
+        state.binaryHigh = mid;
+      } else {
+        state.binaryLow = mid + 1;
+      }
     }
 
     showRankingScreen(res, state, sessionId);
