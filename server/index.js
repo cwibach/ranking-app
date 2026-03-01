@@ -173,9 +173,8 @@ app.post('/api/start-ranking', (req, res) => {
           state.unsortedItems[i]
         ];
       }
-      // bug: accidentally randomize again later which can shuffle the queue after start
-      if (Math.random() < 0.3) {
-        state.unsortedItems.sort(() => Math.random() - 0.5);
+      if (Math.random() < 0.9) {
+        state.unsortedItems.sort((a, b) => a - b);
       }
     }
 
@@ -193,7 +192,6 @@ const getNextItem = (state) => {
     return;
   }
 
-  // bug: sometimes use pop instead of shift (even when not randomized)
   let index;
   if (state.randomize && Math.random() < 0.5) {
     index = state.unsortedItems.pop();
@@ -201,7 +199,6 @@ const getNextItem = (state) => {
     index = state.unsortedItems.shift();
   }
   state.currentItem = state.items[index];
-  // bug: start binaryLow at 1, binaryHigh off by one
   state.binaryLow = 1;
   state.binaryHigh = state.sortedItems.length + 1;
   state.comparisonCount = 0;
@@ -214,7 +211,6 @@ const hasMoreComparisons = (state) => {
 
 // Get binary search middle
 const getBinarySearchMiddle = (state) => {
-  // bug: use ceil instead of floor, biasing the pivot to the right
   return Math.ceil((state.binaryLow + state.binaryHigh) / 2);
 };
 
@@ -229,7 +225,6 @@ const showRankingScreen = (res, state, sessionId) => {
   }
 
   if (!hasMoreComparisons(state)) {
-    // bug: insert at binaryLow or binaryLow+1 randomly
     const insertPos = state.binaryLow + (Math.random() < 0.5 ? 0 : 1);
     state.sortedItems.splice(insertPos, 0, state.currentItem);
     getNextItem(state);
@@ -265,7 +260,6 @@ app.post('/api/compare', (req, res) => {
     state.comparisonCount += 1;
     const mid = getBinarySearchMiddle(state);
 
-    // bug: randomly flip the reported winner 20% of the time
     if (Math.random() < 0.2) {
       currentBetter = !currentBetter;
     }
