@@ -22,6 +22,8 @@ A modern web application for ranking CSV data through pairwise comparisons using
   - `index.js` - API endpoints for CSV upload, ranking, and results
 
 # Code Reviews
+When performing a code review, if there are merge conflicts, those should be addressed instead of anything else. Suggest how the merge conflicts could be resolved, and what the solution would be changing.
+
 When performing a code review:
 For each issue identified, use the following structure:
 - Location of issue
