@@ -108,6 +108,7 @@ function App() {
           fieldnames={fieldnames}
           setSortedItems={handleSortedItems}
           initialRanking={initialRanking}
+          onExit={handleNewRanking}
         />
       )}
       {appState === 'results' && (
