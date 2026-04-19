@@ -4,7 +4,7 @@ import { Box, Grid, Typography, Button, Checkbox, FormControlLabel} from '@mui/m
 interface Props {
   itemCount: number
   sessionId: string
-  onStart: () => void
+  onStart: (initialRanking: any) => void
   onBack: () => void
 }
 
@@ -24,7 +24,8 @@ export default function RankingOptions({ itemCount, sessionId, onStart, onBack }
         throw new Error('Failed to start ranking')
       }
 
-      onStart()
+      const data = await response.json()
+      onStart(data)
     } catch (error) {
       alert('Error: ' + (error as Error).message)
     }

@@ -1,4 +1,5 @@
 import { Button, Typography, Box } from '@mui/material'
+import { useState } from 'react'
 
 interface Item {
   [key: string]: string
@@ -16,7 +17,54 @@ interface Props2 {
 }
 
 export const ExpandedItemInfo = ({item, hideView}: Props) => {
-    const [firstKey, firstValue] = Object.entries(item)[0]
+    const [, firstValue] = Object.entries(item)[0]
+
+    const ImageField = ({ label, url }: { label: string; url: string | undefined }) => {
+        const [errored, setErrored] = useState(false)
+
+        if (!url) {
+            return (
+                <div key={label}>
+                    <Typography variant="body1" sx={{mb:1}}>
+                        <b>{label}:</b> N/A
+                    </Typography>
+                </div>
+            )
+        }
+
+        if (errored) {
+            return (
+                <div key={label}>
+                    <Typography variant="body1" sx={{mb:1}}>
+                        <b>{label}:</b> {url}
+                    </Typography>
+                </div>
+            )
+        }
+
+        return (
+            <div key={label}>
+                <Typography variant="body1" sx={{mb:1}}>
+                    <b>{label}:</b>
+                </Typography>
+                <Box
+                    component="img"
+                    src={url}
+                    alt={label}
+                    loading="lazy"
+                    onError={() => setErrored(true)}
+                    sx={{
+                        display: 'block',
+                        maxWidth: '100%',
+                        maxHeight: 240,
+                        objectFit: 'contain',
+                        mb: 1
+                    }}
+                />
+            </div>
+        )
+    }
+
     return(
         <Box sx={{
             p: 1,
@@ -26,13 +74,20 @@ export const ExpandedItemInfo = ({item, hideView}: Props) => {
                 {firstValue}
             </Typography>
 
-            {Object.entries(item).map(([key, value]) => (
-                <div key={key}>
-                    <Typography variant="body1" sx={{mb:1}}>
-                        <b>{key}:</b> {value}
-                    </Typography>
-                </div>
-            ))}
+            {Object.entries(item).map(([key, value]) => {
+                const normalized = key.trim().toLowerCase()
+                if (normalized === 'image') {
+                    return <ImageField key={key} label={key} url={value} />
+                }
+
+                return (
+                    <div key={key}>
+                        <Typography variant="body1" sx={{mb:1}}>
+                            <b>{key}:</b> {value}
+                        </Typography>
+                    </div>
+                )
+            })}
 
             <Button
                 onClick={() => hideView()}
@@ -46,8 +101,7 @@ export const ExpandedItemInfo = ({item, hideView}: Props) => {
 }
 
 export const UnExpandedItemInfo = ({item, index, expandView}: Props2) => {
-    const [firstKey, firstValue] = Object.entries(item)[0]
-    const newItem = item
+    const [, firstValue] = Object.entries(item)[0]
 
     return(
         <Box sx={{

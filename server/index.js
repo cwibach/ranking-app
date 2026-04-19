@@ -263,6 +263,22 @@ app.post('/api/compare', (req, res) => {
   }
 });
 
+// Get the current pending comparison without recording a choice
+app.post('/api/next-comparison', (req, res) => {
+  try {
+    const { sessionId } = req.body;
+    const state = rankingStates.get(sessionId);
+
+    if (!state) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    showRankingScreen(res, state, sessionId);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Save results to CSV
 app.post('/api/save-results', (req, res) => {
   try {

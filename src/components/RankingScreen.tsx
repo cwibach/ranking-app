@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Box, Button, Grid, Typography } from '@mui/material'
+import { Button, Grid, Typography } from '@mui/material'
+import SelectItem from './SelectItem'
 
 interface Item {
   [key: string]: string
@@ -41,6 +42,11 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
     if (initialRanking) {
       setRanking(initialRanking)
       setLoading(false)
+
+      if (initialRanking.status === 'complete') {
+        setSortedItems(initialRanking.sortedItems ?? [])
+        onComplete()
+      }
     } else {
       fetchNextComparison()
     }
@@ -49,10 +55,10 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
   const fetchNextComparison = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`${API_URL}/api/compare`, {
+      const response = await fetch(`${API_URL}/api/next-comparison`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, currentBetter: true })
+        body: JSON.stringify({ sessionId })
       })
 
       const data = await response.json() as RankingResponse
@@ -155,57 +161,29 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
 
       {/* Left Panel */}
       <Grid size={6} className="comparison-panel left">
-        <Box className="panel-content"
-          sx={{
-            p: 1,
-            border: "1px dashed grey",
-            ml: 1
-          }}>
-          <Typography className="panel-header left" variant='h4'  sx={{mb:2}}>← Left Option</Typography>
-          {fieldnames.map((field) => (
-            <div key={field} className="item-field">
-              <Typography className="item-field-label" variant='body1' sx={{mb:1}}>
-                <b>{field}:</b> {leftItem[field] || 'N/A'}
-              </Typography>
-            </div>
-          ))}
-          <Button
-            className="btn-success panel-button"
-            onClick={() => handleChoice(true)}
-            variant={"contained"}
-            sx={{mt:1}}
-          >
-            ✓ PREFER LEFT
-          </Button>
-        </Box>
+        <SelectItem
+          item={leftItem}
+          fieldnames={fieldnames}
+          header="← Left Option"
+          headerClassName="panel-header left"
+          buttonText="✓ PREFER LEFT"
+          buttonClassName="btn-success panel-button"
+          onSelect={() => handleChoice(true)}
+        />
 
       </Grid>
 
       {/* Right Panel */}
       <Grid size={6} className="comparison-panel right">
-        <Box className="panel-content"
-          sx={{
-            p: 1,
-            border: "1px dashed grey",
-            ml: 1
-          }}>
-          <Typography className="panel-header right" variant='h4' sx={{mb:2}}>Right Option →</Typography>
-          {fieldnames.map((field) => (
-            <div key={field} className="item-field">
-              <Typography className="item-field-label" variant='body1' sx={{mb:1}}>
-                <b>{field}:</b> {rightItem[field] || 'N/A'}
-              </Typography>
-            </div>
-          ))}
-          <Button
-            className="btn-accent panel-button"
-            onClick={() => handleChoice(false)}
-            variant={"contained"}
-            sx={{mt:1}}
-          >
-            PREFER RIGHT ✓
-          </Button>
-        </Box>
+        <SelectItem
+          item={rightItem}
+          fieldnames={fieldnames}
+          header="Right Option →"
+          headerClassName="panel-header right"
+          buttonText="PREFER RIGHT ✓"
+          buttonClassName="btn-accent panel-button"
+          onSelect={() => handleChoice(false)}
+        />
       </Grid>
 
       <Grid size={12}>
