@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Box, Button, Grid, Typography } from '@mui/material'
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, Typography } from '@mui/material'
+import SelectItem from './SelectItem'
 
 interface Item {
   [key: string]: string
@@ -22,15 +23,17 @@ interface Props {
   fieldnames: string[]
   onComplete: () => void
   setSortedItems: (sortedItems: Item[]) => void
+  onExit: () => void
   // when resuming from a saved file the server will send a partial
   // RankingResponse so we can show the correct comparison without
   // immediately posting another /compare call
   initialRanking?: RankingResponse
 }
 
-export default function RankingScreen({ sessionId, fieldnames, onComplete, setSortedItems, initialRanking }: Props) {
+export default function RankingScreen({ sessionId, fieldnames, onComplete, setSortedItems, onExit, initialRanking }: Props) {
   const [ranking, setRanking] = useState<RankingResponse | null>(null)
   const [loading, setLoading] = useState(true)
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
   useEffect(() => {
@@ -41,6 +44,11 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
     if (initialRanking) {
       setRanking(initialRanking)
       setLoading(false)
+
+      if (initialRanking.status === 'complete') {
+        setSortedItems(initialRanking.sortedItems ?? [])
+        onComplete()
+      }
     } else {
       fetchNextComparison()
     }
@@ -49,10 +57,10 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
   const fetchNextComparison = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`${API_URL}/api/compare`, {
+      const response = await fetch(`${API_URL}/api/next-comparison`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, currentBetter: true })
+        body: JSON.stringify({ sessionId })
       })
 
       const data = await response.json() as RankingResponse
@@ -121,6 +129,19 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
     }
   }
 
+  const handleExit = () => {
+    setConfirmOpen(true)
+  }
+
+  const handleCancelExit = () => {
+    setConfirmOpen(false)
+  }
+
+  const handleConfirmExit = () => {
+    setConfirmOpen(false)
+    onExit()
+  }
+
   if (loading || !ranking) {
     return (
       <Grid container spacing={2} justifyContent={"space-evenly"}>
@@ -155,69 +176,73 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
 
       {/* Left Panel */}
       <Grid size={6} className="comparison-panel left">
-        <Box className="panel-content"
-          sx={{
-            p: 1,
-            border: "1px dashed grey",
-            ml: 1
-          }}>
-          <Typography className="panel-header left" variant='h4'  sx={{mb:2}}>← Left Option</Typography>
-          {fieldnames.map((field) => (
-            <div key={field} className="item-field">
-              <Typography className="item-field-label" variant='body1' sx={{mb:1}}>
-                <b>{field}:</b> {leftItem[field] || 'N/A'}
-              </Typography>
-            </div>
-          ))}
-          <Button
-            className="btn-success panel-button"
-            onClick={() => handleChoice(true)}
-            variant={"contained"}
-            sx={{mt:1}}
-          >
-            ✓ PREFER LEFT
-          </Button>
-        </Box>
+        <SelectItem
+          item={leftItem}
+          fieldnames={fieldnames}
+          header="← Left Option"
+          headerClassName="panel-header left"
+          buttonText="✓ PREFER LEFT"
+          buttonClassName="btn-success panel-button"
+          onSelect={() => handleChoice(true)}
+        />
 
       </Grid>
 
       {/* Right Panel */}
       <Grid size={6} className="comparison-panel right">
-        <Box className="panel-content"
-          sx={{
-            p: 1,
-            border: "1px dashed grey",
-            ml: 1
-          }}>
-          <Typography className="panel-header right" variant='h4' sx={{mb:2}}>Right Option →</Typography>
-          {fieldnames.map((field) => (
-            <div key={field} className="item-field">
-              <Typography className="item-field-label" variant='body1' sx={{mb:1}}>
-                <b>{field}:</b> {rightItem[field] || 'N/A'}
-              </Typography>
-            </div>
-          ))}
-          <Button
-            className="btn-accent panel-button"
-            onClick={() => handleChoice(false)}
-            variant={"contained"}
-            sx={{mt:1}}
-          >
-            PREFER RIGHT ✓
-          </Button>
-        </Box>
+        <SelectItem
+          item={rightItem}
+          fieldnames={fieldnames}
+          header="Right Option →"
+          headerClassName="panel-header right"
+          buttonText="PREFER RIGHT ✓"
+          buttonClassName="btn-accent panel-button"
+          onSelect={() => handleChoice(false)}
+        />
       </Grid>
 
       <Grid size={12}>
-        <Button
-          sx={{mt:5}}
-          className="btn-secondary"
-          style={{ padding: '7px 15px', fontSize: '10px' }}
-          variant={"contained"}
-          onClick={handleSaveProgress}>
-          💾 Save Progress
-        </Button>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: 20 }}>
+          <Button
+            sx={{ mt: 0 }}
+            className="btn-secondary"
+            style={{ padding: '7px 15px', fontSize: '10px' }}
+            variant={"contained"}
+            onClick={handleSaveProgress}>
+            💾 Save Progress
+          </Button>
+          <Button
+            sx={{ mt: 0 }}
+            className="btn-secondary"
+            style={{ padding: '7px 15px', fontSize: '10px' }}
+            variant={"contained"}
+            onClick={handleExit}>
+            Exit Home
+          </Button>
+        </div>
       </Grid>
+
+      <Dialog
+        open={confirmOpen}
+        onClose={handleCancelExit}
+        aria-labelledby="exit-confirmation-dialog-title"
+        aria-describedby="exit-confirmation-dialog-description"
+      >
+        <DialogTitle id="exit-confirmation-dialog-title">
+          Exit Ranking Session
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="exit-confirmation-dialog-description">
+            Are you sure you want to exit to the home screen? Your unsaved ranking progress will be lost.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelExit}>Cancel</Button>
+          <Button onClick={handleConfirmExit} autoFocus>
+            Exit Home
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Grid>
   )
 }

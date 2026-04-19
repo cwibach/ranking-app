@@ -70,7 +70,8 @@ function App() {
     setSortedItems(sortedItems)
   }
 
-  const handleStartRanking = () => {
+  const handleStartRanking = (rankingResponse: RankingResponse) => {
+    setInitialRanking(rankingResponse)
     setAppState('ranking')
   }
 
@@ -83,6 +84,8 @@ function App() {
     setSessionId('')
     setItemCount(0)
     setFieldnames([])
+    setSortedItems([])
+    setInitialRanking(undefined)
   }
 
   return (
@@ -105,6 +108,7 @@ function App() {
           fieldnames={fieldnames}
           setSortedItems={handleSortedItems}
           initialRanking={initialRanking}
+          onExit={handleNewRanking}
         />
       )}
       {appState === 'results' && (

@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse/sync';
 import { stringify } from 'csv-stringify/sync';
+import * as XLSX from 'xlsx';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -20,13 +21,76 @@ const upload = multer({ storage: multer.memoryStorage() });
 // Store ranking states in memory
 const rankingStates = new Map();
 
-// Parse CSV from buffer
-const parseCSV = (buffer) => {
-  const content = buffer.toString('utf8');
-  return parse(content, {
-    columns: true,
-    skip_empty_lines: true
+const coerceRowsToStringValues = (rows) => {
+  return (rows ?? []).map((row) => {
+    const obj = row && typeof row === 'object' ? row : {};
+    return Object.fromEntries(
+      Object.entries(obj).map(([key, value]) => [
+        String(key),
+        value === null || value === undefined ? '' : String(value)
+      ])
+    );
   });
+};
+
+const detectDelimiter = (content) => {
+  const firstLine = (content.split(/\r?\n/, 1)[0] ?? '').trim();
+  const candidates = [',', '\t', ';', '|'];
+
+  let best = ',';
+  let bestCount = -1;
+
+  for (const delimiter of candidates) {
+    const count = firstLine.split(delimiter).length - 1;
+    if (count > bestCount) {
+      bestCount = count;
+      best = delimiter;
+    }
+  }
+
+  return best;
+};
+
+const parseDelimitedText = (buffer, { delimiter } = {}) => {
+  const content = buffer.toString('utf8');
+  const chosen = delimiter ?? detectDelimiter(content);
+  const rows = parse(content, {
+    columns: true,
+    skip_empty_lines: true,
+    delimiter: chosen
+  });
+  return coerceRowsToStringValues(rows);
+};
+
+const parseXlsx = (buffer) => {
+  const workbook = XLSX.read(buffer, { type: 'buffer' });
+  const sheetName = workbook.SheetNames?.[0];
+  if (!sheetName) return [];
+
+  const worksheet = workbook.Sheets[sheetName];
+  const rows = XLSX.utils.sheet_to_json(worksheet, {
+    defval: '',
+    raw: false
+  });
+
+  return coerceRowsToStringValues(rows);
+};
+
+// Parse uploaded file from buffer based on extension
+const parseUploadedItems = (file) => {
+  const name = file?.originalname ?? '';
+  const ext = path.extname(name).toLowerCase();
+
+  if (ext === '.xlsx' || ext === '.xls') {
+    return parseXlsx(file.buffer);
+  }
+
+  if (ext === '.tsv') {
+    return parseDelimitedText(file.buffer, { delimiter: '\t' });
+  }
+
+  // .csv, .txt, and anything else: treat as delimited text and auto-detect
+  return parseDelimitedText(file.buffer);
 };
 
 // Upload and parse CSV
@@ -36,7 +100,7 @@ app.post('/api/upload-csv', upload.single('file'), (req, res) => {
       return res.status(400).json({ error: 'No file provided' });
     }
 
-    const items = parseCSV(req.file.buffer);
+    const items = parseUploadedItems(req.file);
     const sessionId = Date.now().toString();
 
     rankingStates.set(sessionId, {
@@ -255,6 +319,22 @@ app.post('/api/compare', (req, res) => {
       state.binaryHigh = mid;
     } else {
       state.binaryLow = mid + 1;
+    }
+
+    showRankingScreen(res, state, sessionId);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get the current pending comparison without recording a choice
+app.post('/api/next-comparison', (req, res) => {
+  try {
+    const { sessionId } = req.body;
+    const state = rankingStates.get(sessionId);
+
+    if (!state) {
+      return res.status(404).json({ error: 'Session not found' });
     }
 
     showRankingScreen(res, state, sessionId);

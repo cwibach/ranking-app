@@ -125,7 +125,7 @@ Item 10,Tenth item,7.8`
           Ranking Application
         </Typography>
         <Typography variant="body1" sx={{mb:1}}>
-          Select a CSV file or use demo data to start ranking
+          Select a CSV-like file or use demo data to start ranking
         </Typography>
       </Grid>
 
@@ -137,10 +137,10 @@ Item 10,Tenth item,7.8`
             ml: 1
           }}>
           <Typography variant='h3' sx={{mb:1}}>
-            📁 Load CSV
+            📁 Load File
           </Typography>
           <Typography variant="body1" sx={{mb:1}}>
-            Upload a CSV file with items to rank
+            Upload a CSV/TSV/XLSX file with items to rank
           </Typography>
           <Button
             className="btn-primary"
@@ -153,7 +153,7 @@ Item 10,Tenth item,7.8`
           <input
             ref={fileInputRef}
             type="file"
-            accept=".csv"
+            accept=".csv,.tsv,.txt,.xlsx"
             onChange={handleFileUpload}
             style={{ display: 'none' }}
           />
@@ -213,7 +213,7 @@ Item 10,Tenth item,7.8`
           <input
             ref={inprogressInputRef}
             type="file"
-            accept=".csv"
+            accept=".csv,.txt"
             onChange={handleLoadInProgress}
             style={{ display: 'none' }}
           />
@@ -221,7 +221,7 @@ Item 10,Tenth item,7.8`
       </Grid>
 
       <Typography variant="body2">
-        CSV files should have headers. Each row will be ranked.
+        Files should have headers. Each row will be ranked.
       </Typography>
     </Grid>
   )
