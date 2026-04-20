@@ -110,6 +110,7 @@ app.post('/api/upload-csv', upload.single('file'), (req, res) => {
       unsortedItems: items.map((_, i) => i),
       currentItem: null,
       comparisonCount: 0,
+      currentComparisonShown: false,
       binaryLow: 0,
       binaryHigh: 0,
       randomize: false
@@ -148,14 +149,15 @@ app.post('/api/load-inprogress', upload.single('file'), (req, res) => {
 
     const firstParts = headerLine.split(',').map(s => s.trim());
     if (firstParts.length < 3) {
-      return res.status(400).json({ error: 'First row must contain three integers: sortedCount,binaryLow,binaryHigh' });
+      return res.status(400).json({ error: 'First row must contain at least three integers: sortedCount,binaryLow,binaryHigh' });
     }
 
     const sortedCount = parseInt(firstParts[0], 10);
     const binaryLow = parseInt(firstParts[1], 10);
     const binaryHigh = parseInt(firstParts[2], 10);
+    const comparisonCount = firstParts.length >= 4 ? parseInt(firstParts[3], 10) : 0;
 
-    if ([sortedCount, binaryLow, binaryHigh].some(v => Number.isNaN(v))) {
+    if ([sortedCount, binaryLow, binaryHigh, comparisonCount].some(v => Number.isNaN(v))) {
       return res.status(400).json({ error: 'First row values must be integers' });
     }
 
@@ -187,7 +189,8 @@ app.post('/api/load-inprogress', upload.single('file'), (req, res) => {
       sortedItems,
       unsortedItems,
       currentItem,
-      comparisonCount: 0,
+      comparisonCount,
+      currentComparisonShown: false,
       binaryLow,
       binaryHigh,
       randomize: false
@@ -206,12 +209,12 @@ app.post('/api/load-inprogress', upload.single('file'), (req, res) => {
         rightItem: sortedItems[mid],
         itemsDone: items.length - unsortedItems.length - 1,
         totalItems: items.length,
-        comparisons: 0,
+        comparisons: comparisonCount,
         fieldnames
       });
     }
 
-    return res.json({ status: 'ready-to-insert', sessionId, itemCount: items.length, fieldnames, sortedCount, binaryLow, binaryHigh });
+    return res.json({ status: 'ready-to-insert', sessionId, itemCount: items.length, fieldnames, sortedCount, binaryLow, binaryHigh, comparisons: comparisonCount });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -257,7 +260,7 @@ const getNextItem = (state) => {
   state.currentItem = state.items[index];
   state.binaryLow = 0;
   state.binaryHigh = state.sortedItems.length;
-  state.comparisonCount = 0;
+  state.currentComparisonShown = false;
 };
 
 // Check if more comparisons needed
@@ -271,6 +274,13 @@ const getBinarySearchMiddle = (state) => {
 };
 
 // Show ranking screen
+const ensureComparisonShown = (state) => {
+  if (hasMoreComparisons(state) && !state.currentComparisonShown) {
+    state.comparisonCount += 1;
+    state.currentComparisonShown = true;
+  }
+};
+
 const showRankingScreen = (res, state, sessionId) => {
   if (state.currentItem === null) {
     return res.json({
@@ -285,6 +295,8 @@ const showRankingScreen = (res, state, sessionId) => {
     getNextItem(state);
     return showRankingScreen(res, state, sessionId);
   }
+
+  ensureComparisonShown(state);
 
   const mid = getBinarySearchMiddle(state);
   const leftItem = state.currentItem;
@@ -312,7 +324,7 @@ app.post('/api/compare', (req, res) => {
       return res.status(404).json({ error: 'Session not found' });
     }
 
-    state.comparisonCount += 1;
+    state.currentComparisonShown = false;
     const mid = getBinarySearchMiddle(state);
 
     if (currentBetter) {
@@ -379,6 +391,7 @@ app.post('/api/save-progress', (req, res) => {
     const sortedCount = state.sortedItems.length;
     const binaryLow = typeof state.binaryLow === 'number' ? state.binaryLow : 0;
     const binaryHigh = typeof state.binaryHigh === 'number' ? state.binaryHigh : 0;
+    const comparisonCount = typeof state.comparisonCount === 'number' ? state.comparisonCount : 0;
 
     // Build ordered list: already-sorted, currentItem (if any), then remaining unsorted items in queue order
     const ordered = [];
@@ -387,7 +400,7 @@ app.post('/api/save-progress', (req, res) => {
     for (const idx of state.unsortedItems) ordered.push(state.items[idx]);
 
     const csvBody = stringify(ordered, { header: true, columns: state.fieldnames });
-    const headerLine = `${sortedCount},${binaryLow},${binaryHigh}\n`;
+    const headerLine = `${sortedCount},${binaryLow},${binaryHigh},${comparisonCount}\n`;
     const csv = headerLine + csvBody;
 
     res.setHeader('Content-Type', 'text/csv');
