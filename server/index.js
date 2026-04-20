@@ -202,6 +202,19 @@ app.post('/api/load-inprogress', upload.single('file'), (req, res) => {
 
     if (binaryLow < binaryHigh) {
       const mid = Math.floor((binaryLow + binaryHigh) / 2);
+      const tempState = {
+        items,
+        fieldnames,
+        sortedItems,
+        unsortedItems,
+        currentItem,
+        comparisonCount,
+        currentComparisonShown: false,
+        binaryLow,
+        binaryHigh,
+        randomize: false
+      };
+      const { minRemaining, maxRemaining } = getRemainingComparisonBounds(tempState);
       return res.json({
         status: 'ranking',
         sessionId,
@@ -210,6 +223,8 @@ app.post('/api/load-inprogress', upload.single('file'), (req, res) => {
         itemsDone: items.length - unsortedItems.length - 1,
         totalItems: items.length,
         comparisons: comparisonCount,
+        minRemainingComparisons: minRemaining,
+        maxRemainingComparisons: maxRemaining,
         fieldnames
       });
     }
@@ -273,6 +288,34 @@ const getBinarySearchMiddle = (state) => {
   return Math.floor((state.binaryLow + state.binaryHigh) / 2);
 };
 
+const log2floor = (n) => {
+  return n > 0 ? Math.floor(Math.log2(n)) : 0;
+};
+
+const log2ceil = (n) => {
+  return n > 0 ? Math.ceil(Math.log2(n)) : 0;
+};
+
+const getRemainingComparisonBounds = (state) => {
+  let minRemaining = 0;
+  let maxRemaining = 0;
+
+  if (state.currentItem !== null) {
+    const currentItemNumber = state.binaryHigh - state.binaryLow + 1;
+    minRemaining += log2floor(currentItemNumber);
+    maxRemaining += log2ceil(currentItemNumber);
+  }
+
+  const futureBaseNumber = state.sortedItems.length + 2;
+  for (let i = 0; i < state.unsortedItems.length; i++) {
+    const itemNumber = futureBaseNumber + i;
+    minRemaining += log2floor(itemNumber);
+    maxRemaining += log2ceil(itemNumber);
+  }
+
+  return { minRemaining, maxRemaining };
+};
+
 // Show ranking screen
 const ensureComparisonShown = (state) => {
   if (hasMoreComparisons(state) && !state.currentComparisonShown) {
@@ -301,6 +344,7 @@ const showRankingScreen = (res, state, sessionId) => {
   const mid = getBinarySearchMiddle(state);
   const leftItem = state.currentItem;
   const rightItem = state.sortedItems[mid];
+  const { minRemaining, maxRemaining } = getRemainingComparisonBounds(state);
 
   res.json({
     status: 'ranking',
@@ -310,6 +354,8 @@ const showRankingScreen = (res, state, sessionId) => {
     itemsDone: state.items.length - state.unsortedItems.length - 1,
     totalItems: state.items.length,
     comparisons: state.comparisonCount,
+    minRemainingComparisons: minRemaining,
+    maxRemainingComparisons: maxRemaining,
     fieldnames: state.fieldnames
   });
 };

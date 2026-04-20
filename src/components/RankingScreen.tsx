@@ -14,6 +14,8 @@ interface RankingResponse {
   itemsDone?: number
   totalItems?: number
   comparisons?: number
+  minRemainingComparisons?: number
+  maxRemainingComparisons?: number
   fieldnames?: string[]
   sortedItems?: Item[]
 }
@@ -162,6 +164,8 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
   const itemsDone = ranking.itemsDone || 0
   const totalItems = ranking.totalItems || 0
   const comparisons = ranking.comparisons || 0
+  const minRemaining = ranking.minRemainingComparisons ?? 0
+  const maxRemaining = ranking.maxRemainingComparisons ?? 0
 
   return (
     <Grid container justifyContent={"space-evenly"}>
@@ -171,6 +175,7 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
         </Typography>
         <Typography variant="body1" sx={{mb:2}}>
           Item {itemsDone + 1} of {totalItems} | Comparisons: {comparisons}
+          {minRemaining !== 0 || maxRemaining !== 0 ? ` | Remaining: ${minRemaining}–${maxRemaining}` : ''}
         </Typography>
       </Grid>
 
