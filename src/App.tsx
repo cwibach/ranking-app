@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Box, Switch, Typography } from '@mui/material'
 import FileSelection from './components/FileSelection'
 import RankingOptions from './components/RankingOptions'
 import RankingScreen from './components/RankingScreen'
@@ -23,13 +24,21 @@ interface RankingResponse {
   sortedItems?: Item[]
 }
 
-function App() {
+interface AppProps {
+  isDarkMode: boolean
+  onToggleTheme: () => void
+  usingSystemPreference: boolean
+  systemPrefersDark: boolean
+}
+
+function App({ isDarkMode, onToggleTheme, usingSystemPreference, systemPrefersDark }: AppProps) {
   const [appState, setAppState] = useState<AppState>('file-selection')
   const [sessionId, setSessionId] = useState<string>('')
   const [itemCount, setItemCount] = useState<number>(0)
   const [fieldnames, setFieldnames] = useState<string[]>([])
   const [sortedItems, setSortedItems] = useState<Item[]>([])
   const [initialRanking, setInitialRanking] = useState<RankingResponse | undefined>(undefined)
+  const [hideRemainingComparisons, setHideRemainingComparisons] = useState(false)
 
   const handleFileSelect = (
     newSessionId: string,
@@ -70,8 +79,9 @@ function App() {
     setSortedItems(sortedItems)
   }
 
-  const handleStartRanking = (rankingResponse: RankingResponse) => {
+  const handleStartRanking = (rankingResponse: RankingResponse, hideRemaining: boolean) => {
     setInitialRanking(rankingResponse)
+    setHideRemainingComparisons(hideRemaining)
     setAppState('ranking')
   }
 
@@ -90,6 +100,18 @@ function App() {
 
   return (
     <div className="app">
+      <Box className="theme-toggle">
+        <Typography variant="caption" className="theme-toggle-label">
+          {isDarkMode ? 'Dark' : 'Light'} Mode
+        </Typography>
+        <Switch checked={isDarkMode} onChange={onToggleTheme} inputProps={{ 'aria-label': 'Toggle light and dark theme' }} />
+        {usingSystemPreference && (
+          <Typography variant="caption" className="theme-toggle-hint">
+            System default: {systemPrefersDark ? 'dark' : 'light'}
+          </Typography>
+        )}
+      </Box>
+
       {appState === 'file-selection' && (
         <FileSelection onFileSelect={handleFileSelect} />
       )}
@@ -109,6 +131,7 @@ function App() {
           setSortedItems={handleSortedItems}
           initialRanking={initialRanking}
           onExit={handleNewRanking}
+          hideRemainingComparisons={hideRemainingComparisons}
         />
       )}
       {appState === 'results' && (

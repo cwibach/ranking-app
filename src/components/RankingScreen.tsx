@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, Typography } from '@mui/material'
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, Typography } from '@mui/material'
 import SelectItem from './SelectItem'
 
 interface Item {
@@ -26,13 +26,14 @@ interface Props {
   onComplete: () => void
   setSortedItems: (sortedItems: Item[]) => void
   onExit: () => void
+  hideRemainingComparisons: boolean
   // when resuming from a saved file the server will send a partial
   // RankingResponse so we can show the correct comparison without
   // immediately posting another /compare call
   initialRanking?: RankingResponse
 }
 
-export default function RankingScreen({ sessionId, fieldnames, onComplete, setSortedItems, onExit, initialRanking }: Props) {
+export default function RankingScreen({ sessionId, fieldnames, onComplete, setSortedItems, onExit, hideRemainingComparisons, initialRanking }: Props) {
   const [ranking, setRanking] = useState<RankingResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -151,9 +152,9 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
           <Typography variant='h2'>
             Select Preferred Option
           </Typography>
-          <Typography variant="body1">
+          {/* <Typography variant="body1">
             Loading items
-          </Typography>
+          </Typography> */}
         </Grid>
       </Grid>
     )
@@ -168,15 +169,34 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
   const maxRemaining = ranking.maxRemainingComparisons ?? 0
 
   return (
-    <Grid container justifyContent={"space-evenly"}>
+    <Grid container spacing={2} justifyContent={"space-evenly"}>
       <Grid size={12} justifyContent={"center"}>
         <Typography variant='h2' sx={{mb:1}}>
           Select Preferred Option
         </Typography>
-        <Typography variant="body1" sx={{mb:2}}>
+        <Typography variant="body1" sx={{mb:0}}>
           Item {itemsDone + 1} of {totalItems} | Comparisons: {comparisons}
-          {minRemaining !== 0 || maxRemaining !== 0 ? ` | Remaining: ${minRemaining}–${maxRemaining}` : ''}
+          {!hideRemainingComparisons && (minRemaining !== 0 || maxRemaining !== 0) ? ` | Remaining: ${minRemaining}–${maxRemaining}` : ''}
         </Typography>
+      </Grid>
+
+      <Grid size={12}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.25, flexWrap: 'wrap', mt: 0, mb: 0 }}>
+          <Button
+            className="btn-secondary btn-save-progress"
+            sx={{ mt: 0, px: 2.5, py: 1.25, fontSize: '10px' }}
+            variant={"contained"}
+            onClick={handleSaveProgress}>
+            💾 Save Progress
+          </Button>
+          <Button
+            sx={{ mt: 0, px: 2.5, py: 1.25, fontSize: '10px' }}
+            className="btn-secondary btn-cancel"
+            variant={"contained"}
+            onClick={handleExit}>
+            Exit Home
+          </Button>
+        </Box>
       </Grid>
 
       {/* Left Panel */}
@@ -187,7 +207,7 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
           header="← Left Option"
           headerClassName="panel-header left"
           buttonText="✓ PREFER LEFT"
-          buttonClassName="btn-success panel-button"
+          buttonClassName="btn-prefer-left panel-button"
           onSelect={() => handleChoice(true)}
         />
 
@@ -206,27 +226,6 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
         />
       </Grid>
 
-      <Grid size={12}>
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: 20 }}>
-          <Button
-            sx={{ mt: 0 }}
-            className="btn-secondary"
-            style={{ padding: '7px 15px', fontSize: '10px' }}
-            variant={"contained"}
-            onClick={handleSaveProgress}>
-            💾 Save Progress
-          </Button>
-          <Button
-            sx={{ mt: 0 }}
-            className="btn-secondary"
-            style={{ padding: '7px 15px', fontSize: '10px' }}
-            variant={"contained"}
-            onClick={handleExit}>
-            Exit Home
-          </Button>
-        </div>
-      </Grid>
-
       <Dialog
         open={confirmOpen}
         onClose={handleCancelExit}
@@ -242,8 +241,8 @@ export default function RankingScreen({ sessionId, fieldnames, onComplete, setSo
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCancelExit}>Cancel</Button>
-          <Button onClick={handleConfirmExit} autoFocus>
+          <Button className="btn-cancel" onClick={handleCancelExit}>Cancel</Button>
+          <Button className="btn-secondary btn-confirm" onClick={handleConfirmExit} autoFocus>
             Exit Home
           </Button>
         </DialogActions>

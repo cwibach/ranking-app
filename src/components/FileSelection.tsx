@@ -119,7 +119,7 @@ Item 10,Tenth item,7.8`
   }
 
   return (
-    <Grid container spacing={2} justifyContent={"space-evenly"}>
+    <Grid container spacing={2} justifyContent={"space-evenly"} alignItems={"stretch"}>
       <Grid size={12} justifyContent={"center"}>
         <Typography variant='h2' sx={{mb:2}} fontWeight={"bold"}>
           Ranking Application
@@ -132,19 +132,26 @@ Item 10,Tenth item,7.8`
       <Grid size={4}>
         <Box alignItems="center"
           sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
             p: 1,
-            border: "1px dashed grey",
-            ml: 1
+            backgroundColor: 'var(--bg-card)',
+            borderRadius: 4,
+            border: '1px solid var(--border-default)',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
+            ml: 1,
+            height: '100%'
           }}>
           <Typography variant='h3' sx={{mb:1}}>
-            📁 Load File
+            Load File
           </Typography>
           <Typography variant="body1" sx={{mb:1}}>
             Upload a CSV/TSV/XLSX file with items to rank
           </Typography>
           <Button
             className="btn-primary"
-            style={{ width: '100%' }}
+            sx={{ width: '100%' }}
             onClick={() => fileInputRef.current?.click()}
             variant='contained'
           >
@@ -163,48 +170,28 @@ Item 10,Tenth item,7.8`
       <Grid size={4}>
         <Box alignItems="center"
           sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
             p: 1,
-            border: "1px dashed grey",
-            ml: 1
+            backgroundColor: 'var(--bg-card)',
+            borderRadius: 4,
+            border: '1px solid var(--border-default)',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
+            ml: 1,
+            height: '100%'
           }}>
 
           <Typography variant='h3' sx={{mb:1}}>
-            Demo Data
+            Continue Previous
           </Typography>
 
           <Typography variant="body1" sx={{mb:1}}>
-            Use sample data to see how it works
-          </Typography>
-
-          <Button
-            className="btn-accent"
-            style={{ width: '100%' }}
-            onClick={handleDemoData}
-            variant='contained'
-          >
-            Load Demo
-          </Button>
-        </Box>
-      </Grid>
-
-      <Grid size={4}>
-        <Box alignItems="center"
-          sx={{
-            p: 1,
-            border: "1px dashed grey",
-            ml: 1
-          }}>
-
-          <Typography variant='h3' sx={{mb:1}}>
-            🔁 Continue Previous
-          </Typography>
-
-          <Typography variant="body1" sx={{mb:1}}>
-            Upload an in-progress CSV to resume without repeating comparisons
+            Resume a ranking without repeating comparisons
           </Typography>
           <Button
-            className="btn-success"
-            style={{ width: '100%' }}
+            className="btn-primary"
+            sx={{ width: '100%' }}
             onClick={() => inprogressInputRef.current?.click()}
             variant='contained'
           >
@@ -217,6 +204,40 @@ Item 10,Tenth item,7.8`
             onChange={handleLoadInProgress}
             style={{ display: 'none' }}
           />
+        </Box>
+      </Grid>
+
+            <Grid size={4}>
+        <Box alignItems="center"
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            p: 1,
+            backgroundColor: 'var(--bg-card)',
+            borderRadius: 4,
+            border: '1px solid var(--border-default)',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
+            ml: 1,
+            height: '100%'
+          }}>
+
+          <Typography variant='h3' sx={{mb:1}}>
+            Demo Data
+          </Typography>
+
+          <Typography variant="body1" sx={{mb:1}}>
+            Use sample data to see how it works
+          </Typography>
+
+          <Button
+            className="btn-primary"
+            sx={{ width: '100%' }}
+            onClick={handleDemoData}
+            variant='contained'
+          >
+            Load Demo
+          </Button>
         </Box>
       </Grid>
 

@@ -68,7 +68,7 @@ export const ExpandedItemInfo = ({item, hideView}: Props) => {
     return(
         <Box sx={{
             p: 1,
-            border: "1px dashed grey"
+            border: 'var(--dashed-border)'
           }}>
             <Typography variant='h4' sx={{mb:1}}>
                 {firstValue}
@@ -106,7 +106,7 @@ export const UnExpandedItemInfo = ({item, index, expandView}: Props2) => {
     return(
         <Box sx={{
             p: 1,
-            border: "1px dashed grey"
+            border: 'var(--dashed-border)'
           }}>
             <Typography variant='h4'>
                 {firstValue}

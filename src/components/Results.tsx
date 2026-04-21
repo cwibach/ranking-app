@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react'
 import { Box, Grid, Typography, Button } from '@mui/material'
 import FinalItemList from './FinalRankingList.tsx'
 
@@ -49,37 +48,35 @@ export default function Results({ sessionId, onNewRanking, sortedItems }: Props)
     <Grid container spacing={2} justifyContent={"center"}>
       <Grid size={12}>
         <Typography variant='h2' fontWeight={"bold"}>
-          🏆 Your Ranked Results
+          Final Ranked Results
         </Typography>
       </Grid>
 
       <Grid size={12}>
         <Typography className="card-description" sx={{mb:1}}>Items ranked from most to least preferred</Typography>
 
-        <Box className="itemlist" sx={{
-            border: "1px dashed grey",
-            ml: 1
-          }}>
-          <FinalItemList itemList={sortedItems} />
-        </Box>
-
         <Box className="btn-group" sx={{
+            display: 'grid',
+            gridTemplateColumns: '1fr auto 1fr',
+            alignItems: 'center',
+            gap: 2,
             p: 1,
-            border: "1px dashed grey",
-            ml: 1
+            // border: 'var(--dashed-border)',
+            ml: 1,
+            mb: 1
           }}>
           <Button 
-          className="btn-accent" 
+          className="btn-accent btn-save-results" 
           onClick={handleDownload}
           variant={"contained"}
-          sx={{mr:2}}>
+          sx={{ justifySelf: 'start' }}>
             💾 Save Results to CSV
           </Button>
           <Button 
-          className="btn-primary" 
+          className="btn-primary btn-confirm" 
           onClick={onNewRanking}
           variant={"contained"}
-          sx={{mr:2}}>
+          sx={{ justifySelf: 'center' }}>
             🔄 New Ranking
           </Button>
           <Button
@@ -89,7 +86,49 @@ export default function Results({ sessionId, onNewRanking, sortedItems }: Props)
               onNewRanking()
             }}
             variant={"contained"}
-          sx={{mr:2}}>
+          sx={{ justifySelf: 'end' }}>
+            ❌ Exit
+          </Button>
+        </Box>
+
+        <Box className="itemlist" sx={{
+            // border: 'var(--dashed-border)',
+            ml: 1
+          }}>
+          <FinalItemList itemList={sortedItems} />
+        </Box>
+
+        <Box className="btn-group" sx={{
+            display: 'grid',
+            gridTemplateColumns: '1fr auto 1fr',
+            alignItems: 'center',
+            gap: 2,
+            p: 1,
+            // border: 'var(--dashed-border)',
+            ml: 1
+          }}>
+          <Button 
+          className="btn-accent btn-save-results" 
+          onClick={handleDownload}
+          variant={"contained"}
+          sx={{ justifySelf: 'start' }}>
+            💾 Save Results to CSV
+          </Button>
+          <Button 
+          className="btn-primary btn-confirm" 
+          onClick={onNewRanking}
+          variant={"contained"}
+          sx={{ justifySelf: 'center' }}>
+            🔄 New Ranking
+          </Button>
+          <Button
+            className="btn-danger"
+            onClick={() => {
+              handleExit()
+              onNewRanking()
+            }}
+            variant={"contained"}
+          sx={{ justifySelf: 'end' }}>
             ❌ Exit
           </Button>
         </Box>

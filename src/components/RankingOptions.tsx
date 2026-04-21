@@ -1,15 +1,16 @@
 import { useState } from 'react'
-import { Box, Grid, Typography, Button, Checkbox, FormControlLabel} from '@mui/material'
+import { Box, Grid, Typography, Button, Checkbox, FormControlLabel } from '@mui/material'
 
 interface Props {
   itemCount: number
   sessionId: string
-  onStart: (initialRanking: any) => void
+  onStart: (initialRanking: any, hideRemainingComparisons: boolean) => void
   onBack: () => void
 }
 
 export default function RankingOptions({ itemCount, sessionId, onStart, onBack }: Props) {
   const [randomize, setRandomize] = useState(false)
+  const [hideRemaining, setHideRemaining] = useState(false)
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
   const handleStart = async () => {
@@ -25,7 +26,7 @@ export default function RankingOptions({ itemCount, sessionId, onStart, onBack }
       }
 
       const data = await response.json()
-      onStart(data)
+      onStart(data, hideRemaining)
     } catch (error) {
       alert('Error: ' + (error as Error).message)
     }
@@ -34,18 +35,24 @@ export default function RankingOptions({ itemCount, sessionId, onStart, onBack }
   return (
     <Grid container spacing={2} justifyContent={"center"}>
       <Grid size={12}>
-        <Typography variant='h2' fontWeight={"bold"} sx={{mb:2}}>
+        <Typography variant='h2' fontWeight={"bold"} sx={{ mb: 2 }}>
           Ranking Settings
         </Typography>
-        <Typography variant="body1" sx={{mb:1}}>
+        <Typography variant="body1" sx={{ mb: 0 }}>
           You have {itemCount} items to rank
         </Typography>
       </Grid>
 
       <Grid size={11} className="content">
-        <Box className="card" sx={{border: "1px dashed grey", mb:5}}>
-          <Typography variant='h3' color='black' sx={{mb:1}}>
-            Ranking Settings ⚙️ 
+        <Box className="card"
+          sx={{
+            borderRadius: 4,
+            border: '1px solid var(--border-default)',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
+            mb: 2, mt: -2
+          }}>
+          <Typography variant='h3' sx={{ mb: -1 }}>
+            Ranking Settings
           </Typography>
 
           <Box className="checkbox-group">
@@ -56,25 +63,44 @@ export default function RankingOptions({ itemCount, sessionId, onStart, onBack }
               />}
               label="Randomize item order before ranking"
             />
-            <Typography variant="body2" color='black'>
+            <Typography variant="body2">
               When enabled, items will be shuffled to remove any bias from their original order.
+            </Typography>
+          </Box>
+
+          <Box className="checkbox-group">
+            <FormControlLabel
+              control={<Checkbox
+                checked={hideRemaining}
+                onChange={(e) => setHideRemaining(e.target.checked)}
+              />}
+              label="Hide remaining comparison estimate"
+            />
+            <Typography variant="body2">
+              If selected, the remaining comparison estimate will not be shown during ranking.
             </Typography>
           </Box>
         </Box>
 
-        <Box className="btn-group" style={{border: "1px dashed grey" }}>
+        <Box className="btn-group"
+          sx={{
+            // border: 'var(--dashed-border)', 
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            p: 1
+          }}>
           <Button
-            className="btn-secondary"
+            className="btn-secondary btn-cancel"
             onClick={onBack}
             variant={"contained"}>
             ← Back
           </Button>
 
           <Button
-            className="btn-success"
+            className="btn-success btn-confirm"
             onClick={handleStart}
-            variant={"contained"}
-            sx={{ml:5}}>
+            variant={"contained"}>
             Start Ranking →
           </Button>
         </Box>

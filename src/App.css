@@ -6,27 +6,41 @@
 
 body {
   font-family: 'Arial', sans-serif;
-  background-color: #4d4b4b;
+  background-color: var(--page-bg);
 }
 
 .app {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 3rem 2rem 0;
+  text-align: center;
 }
 
-/* Color Scheme */
-:root {
-  --primary-blue: #1565c0;
-  --success-green: #2e7d32;
-  --accent-orange: #f57c00;
-  --bg-light: #f5f5f5;
-  --bg-card: #ffffff;
-  --bg-light-green: #e8f5e9;
-  --bg-light-orange: #fff3e0;
-  --text-dark: #333333;
-  --text-light: #666666;
-  --text-white: #ffffff;
+.theme-toggle {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  background-color: var(--bg-card);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
+}
+
+.theme-toggle-label {
+  color: var(--text-dark);
+  font-weight: bold;
+}
+
+.theme-toggle-hint {
+  color: var(--text-light);
 }
 
 /* Headers */
@@ -46,7 +60,7 @@ body {
 
 .header p {
   font-size: 11px;
-  color: #e0e0e0;
+  color: var(--header-subtext);
   margin: 0;
 }
 
@@ -55,7 +69,7 @@ body {
 }
 
 .header.success p {
-  color: #c8e6c9;
+  color: var(--header-success-subtext);
 }
 
 /* Cards */
@@ -98,7 +112,7 @@ button {
 }
 
 .btn-primary:hover {
-  background-color: #0d47a1;
+  background-color: var(--primary-blue-hover);
 }
 
 .btn-success {
@@ -107,7 +121,16 @@ button {
 }
 
 .btn-success:hover {
-  background-color: #1b5e20;
+  background-color: var(--success-green-hover);
+}
+
+.btn-prefer-left {
+  background-color: var(--prefer-left-pink);
+  color: var(--text-white);
+}
+
+.btn-prefer-left:hover {
+  background-color: var(--prefer-left-pink-hover);
 }
 
 .btn-accent {
@@ -116,25 +139,38 @@ button {
 }
 
 .btn-accent:hover {
-  background-color: #e65100;
+  background-color: var(--accent-orange-hover);
 }
 
 .btn-danger {
-  background-color: #d32f2f;
+  background-color: var(--danger-red);
   color: var(--text-white);
 }
 
 .btn-danger:hover {
-  background-color: #b71c1c;
+  background-color: var(--danger-red-hover);
 }
 
 .btn-secondary {
-  background-color: #757575;
+  background-color: var(--secondary-gray);
   color: var(--text-white);
 }
 
 .btn-secondary:hover {
-  background-color: #616161;
+  background-color: var(--secondary-gray-hover);
+}
+
+.btn-save-progress:hover,
+.btn-save-results:hover {
+  background-color: var(--primary-blue-hover);
+}
+
+.btn-cancel:hover {
+  background-color: var(--danger-red-hover);
+}
+
+.btn-confirm:hover {
+  background-color: var(--success-green-hover);
 }
 
 .btn-group {
@@ -192,26 +228,28 @@ input[type="checkbox"] {
   border-radius: 4px;
   padding: 0;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .comparison-panel.left {
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-default);
 }
 
 .comparison-panel.right {
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-default);
 }
 
 .panel-header {
   padding: 12px 15px;
   font-size: 11px;
   font-weight: bold;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border-default);
 }
 
 .panel-header.left {
-  color: var(--success-green);
-  background-color: var(--bg-light-green);
+  color: var(--prefer-left-pink);
+  background-color: var(--bg-light-purple);
 }
 
 .panel-header.right {
@@ -226,6 +264,7 @@ input[type="checkbox"] {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  flex: 1;
 }
 
 .item-field {
@@ -246,9 +285,11 @@ input[type="checkbox"] {
 
 .panel-button {
   width: 100%;
-  padding: 13px;
+  padding: 18px 13px;
+  min-height: 80px;
   margin-top: auto;
-  font-size: 13px;
+  font-size: 16px;
+  line-height: 1.2;
   font-weight: bold;
 }
 
@@ -274,8 +315,8 @@ input[type="checkbox"] {
 }
 
 .result-item {
-  background-color: #f9f9f9;
-  border: 1px solid #e0e0e0;
+  background-color: var(--result-item-bg);
+  border: 1px solid var(--border-default);
   border-radius: 4px;
   padding: 15px;
   margin-bottom: 10px;
@@ -310,6 +351,10 @@ input[type="checkbox"] {
   color: var(--text-light);
 }
 
+.itemlist {
+  text-align: left;
+}
+
 /* File Upload */
 .file-input-wrapper {
   margin: 20px 0;
@@ -317,7 +362,7 @@ input[type="checkbox"] {
 
 input[type="file"] {
   padding: 10px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-default);
   border-radius: 4px;
   cursor: pointer;
 }
@@ -330,6 +375,13 @@ input[type="file"] {
 
 /* Responsive */
 @media (max-width: 768px) {
+  .theme-toggle {
+    top: 10px;
+    right: 10px;
+    padding: 4px 8px;
+    gap: 4px;
+  }
+
   .two-column {
     grid-template-columns: 1fr;
   }

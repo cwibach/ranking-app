@@ -21,7 +21,7 @@ function ImageField({ label, url }: { label: string; url: string | undefined }) 
   if (!url) {
     return (
       <div className="item-field">
-        <Typography className="item-field-label" variant="body1" sx={{ mb: 1 }}>
+        <Typography className="item-field-label" variant="body1" sx={{ mb: 0 }}>
           <b>{label}:</b> N/A
         </Typography>
       </div>
@@ -31,7 +31,7 @@ function ImageField({ label, url }: { label: string; url: string | undefined }) 
   if (errored) {
     return (
       <div className="item-field">
-        <Typography className="item-field-label" variant="body1" sx={{ mb: 1 }}>
+        <Typography className="item-field-label" variant="body1" sx={{ mb: 0}}>
           <b>{label}:</b> {url}
         </Typography>
       </div>
@@ -40,9 +40,6 @@ function ImageField({ label, url }: { label: string; url: string | undefined }) 
 
   return (
     <div className="item-field">
-      <Typography className="item-field-label" variant="body1" sx={{ mb: 1 }}>
-        <b>{label}:</b>
-      </Typography>
       <Box
         component="img"
         src={url}
@@ -51,6 +48,7 @@ function ImageField({ label, url }: { label: string; url: string | undefined }) 
         onError={() => setErrored(true)}
         sx={{
           display: 'block',
+          mx: 'auto',
           maxWidth: '100%',
           maxHeight: 240,
           objectFit: 'contain'
@@ -74,8 +72,8 @@ export default function SelectItem({
       className="panel-content"
       sx={{
         p: 1,
-        border: '1px dashed grey',
-        ml: 1
+        // border: 'var(--dashed-border)',
+        ml: 0
       }}
     >
       <Typography className={headerClassName} variant="h4" sx={{ mb: 2 }}>
@@ -92,7 +90,7 @@ export default function SelectItem({
 
         return (
           <div key={field} className="item-field">
-            <Typography className="item-field-label" variant="body1" sx={{ mb: 1 }}>
+            <Typography className="item-field-label" variant="body1" sx={{ mb: 0 }}>
               <b>{field}:</b> {value || 'N/A'}
             </Typography>
           </div>
@@ -103,7 +101,7 @@ export default function SelectItem({
         className={buttonClassName}
         onClick={onSelect}
         variant="contained"
-        sx={{ mt: 1 }}
+        sx={{ mt: 'auto' }}
       >
         {buttonText}
       </Button>
