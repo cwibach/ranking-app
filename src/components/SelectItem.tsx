@@ -101,7 +101,13 @@ export default function SelectItem({
         className={buttonClassName}
         onClick={onSelect}
         variant="contained"
-        sx={{ mt: 'auto' }}
+        sx={{
+          mt: 'auto',
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 2,
+          width: '100%'
+        }}
       >
         {buttonText}
       </Button>
