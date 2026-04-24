@@ -1,5 +1,6 @@
-import { Box, Grid, Typography, Button } from '@mui/material'
+import { Box, Grid, Typography, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material'
 import FinalItemList from './FinalRankingList.tsx'
+import { useState } from 'react'
 
 interface Item {
   [key: string]: string
@@ -13,6 +14,7 @@ interface Props {
 
 export default function Results({ sessionId, onNewRanking, sortedItems }: Props) {
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   const handleDownload = async () => {
     try {
@@ -42,6 +44,20 @@ export default function Results({ sessionId, onNewRanking, sortedItems }: Props)
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sessionId })
     }).catch(() => { })
+  }
+
+  const handleExitClick = () => {
+    setConfirmOpen(true)
+  }
+
+  const handleCancelExit = () => {
+    setConfirmOpen(false)
+  }
+
+  const handleConfirmExit = () => {
+    setConfirmOpen(false)
+    handleExit()
+    onNewRanking()
   }
 
   return (
@@ -81,10 +97,7 @@ export default function Results({ sessionId, onNewRanking, sortedItems }: Props)
           </Button>
           <Button
             className="btn-danger"
-            onClick={() => {
-              handleExit()
-              onNewRanking()
-            }}
+            onClick={handleExitClick}
             variant={"contained"}
           sx={{ justifySelf: 'end' }}>
             ❌ Exit
@@ -123,15 +136,34 @@ export default function Results({ sessionId, onNewRanking, sortedItems }: Props)
           </Button>
           <Button
             className="btn-danger"
-            onClick={() => {
-              handleExit()
-              onNewRanking()
-            }}
+            onClick={handleExitClick}
             variant={"contained"}
           sx={{ justifySelf: 'end' }}>
             ❌ Exit
           </Button>
         </Box>
+
+        <Dialog
+          open={confirmOpen}
+          onClose={handleCancelExit}
+          aria-labelledby="exit-confirmation-dialog-title"
+          aria-describedby="exit-confirmation-dialog-description"
+        >
+          <DialogTitle id="exit-confirmation-dialog-title">
+            Exit Ranking Session
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText id="exit-confirmation-dialog-description">
+              Are you sure you want to exit to the home screen? If you have not saved your results, you may lose them.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button className="btn-cancel" onClick={handleCancelExit}>Cancel</Button>
+            <Button className="btn-secondary btn-confirm" onClick={handleConfirmExit} autoFocus>
+              Exit Home
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Grid>
     </Grid>
   )

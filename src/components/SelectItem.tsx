@@ -1,5 +1,5 @@
-import { useState, type KeyboardEvent, type MouseEvent } from 'react'
-import { Box, Button, Typography } from '@mui/material'
+import { useState, type KeyboardEvent} from 'react'
+import { Box, Typography } from '@mui/material'
 
 export interface Item {
   [key: string]: string

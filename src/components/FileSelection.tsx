@@ -1,5 +1,5 @@
 import { Box, Button, Grid, Typography } from '@mui/material'
-import { useRef } from 'react'
+import { useRef, type KeyboardEvent, type MouseEvent } from 'react'
 
 interface Props {
   onFileSelect: (
@@ -16,6 +16,13 @@ export default function FileSelection({ onFileSelect }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const inprogressInputRef = useRef<HTMLInputElement>(null)
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+
+  const handleCardKeyDown = (event: KeyboardEvent<HTMLDivElement>, action: () => void) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      action()
+    }
+  }
 
   const handleDemoData = async () => {
     try {
@@ -130,7 +137,12 @@ Item 10,Tenth item,7.8`
       </Grid>
 
       <Grid size={4}>
-        <Box alignItems="center"
+        <Box
+          alignItems="center"
+          role="button"
+          tabIndex={0}
+          onClick={() => fileInputRef.current?.click()}
+          onKeyDown={(event) => handleCardKeyDown(event, () => fileInputRef.current?.click())}
           sx={{
             display: 'flex',
             flexDirection: 'column',
@@ -140,6 +152,13 @@ Item 10,Tenth item,7.8`
             borderRadius: 4,
             border: '1px solid var(--border-default)',
             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
+            transition: 'background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease',
+            cursor: 'pointer',
+            '&:hover': {
+              backgroundColor: 'var(--bg-light)',
+              borderColor: 'var(--primary-blue)',
+              transform: 'translateY(-1px)'
+            },
             ml: 1,
             height: '100%'
           }}>
@@ -149,14 +168,6 @@ Item 10,Tenth item,7.8`
           <Typography variant="body1" sx={{mb:1}}>
             Upload a CSV/TSV/XLSX file with items to rank
           </Typography>
-          <Button
-            className="btn-primary"
-            sx={{ width: '100%' }}
-            onClick={() => fileInputRef.current?.click()}
-            variant='contained'
-          >
-            Choose File
-          </Button>
           <input
             ref={fileInputRef}
             type="file"
@@ -168,7 +179,12 @@ Item 10,Tenth item,7.8`
       </Grid>
 
       <Grid size={4}>
-        <Box alignItems="center"
+        <Box
+          alignItems="center"
+          role="button"
+          tabIndex={0}
+          onClick={() => inprogressInputRef.current?.click()}
+          onKeyDown={(event) => handleCardKeyDown(event, () => inprogressInputRef.current?.click())}
           sx={{
             display: 'flex',
             flexDirection: 'column',
@@ -178,6 +194,13 @@ Item 10,Tenth item,7.8`
             borderRadius: 4,
             border: '1px solid var(--border-default)',
             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
+            transition: 'background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease',
+            cursor: 'pointer',
+            '&:hover': {
+              backgroundColor: 'var(--bg-light)',
+              borderColor: 'var(--primary-blue)',
+              transform: 'translateY(-1px)'
+            },
             ml: 1,
             height: '100%'
           }}>
@@ -189,14 +212,6 @@ Item 10,Tenth item,7.8`
           <Typography variant="body1" sx={{mb:1}}>
             Resume a ranking without repeating comparisons
           </Typography>
-          <Button
-            className="btn-primary"
-            sx={{ width: '100%' }}
-            onClick={() => inprogressInputRef.current?.click()}
-            variant='contained'
-          >
-            Continue Session
-          </Button>
           <input
             ref={inprogressInputRef}
             type="file"
@@ -208,7 +223,12 @@ Item 10,Tenth item,7.8`
       </Grid>
 
             <Grid size={4}>
-        <Box alignItems="center"
+        <Box
+          alignItems="center"
+          role="button"
+          tabIndex={0}
+          onClick={handleDemoData}
+          onKeyDown={(event) => handleCardKeyDown(event, handleDemoData)}
           sx={{
             display: 'flex',
             flexDirection: 'column',
@@ -218,6 +238,13 @@ Item 10,Tenth item,7.8`
             borderRadius: 4,
             border: '1px solid var(--border-default)',
             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
+            transition: 'background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease',
+            cursor: 'pointer',
+            '&:hover': {
+              backgroundColor: 'var(--bg-light)',
+              borderColor: 'var(--primary-blue)',
+              transform: 'translateY(-1px)'
+            },
             ml: 1,
             height: '100%'
           }}>
@@ -230,14 +257,6 @@ Item 10,Tenth item,7.8`
             Use sample data to see how it works
           </Typography>
 
-          <Button
-            className="btn-primary"
-            sx={{ width: '100%' }}
-            onClick={handleDemoData}
-            variant='contained'
-          >
-            Load Demo
-          </Button>
         </Box>
       </Grid>
 
