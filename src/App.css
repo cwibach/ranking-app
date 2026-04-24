@@ -235,12 +235,6 @@ input[type="checkbox"] {
   cursor: pointer;
 }
 
-.comparison-panel.left {
-}
-
-.comparison-panel.right {
-}
-
 .comparison-panel:hover {
   transform: translateY(-1px);
 }
@@ -372,6 +366,50 @@ input[type="checkbox"] {
 
 .itemlist {
   text-align: left;
+}
+
+.final-rank-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.final-rank-handle {
+  width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 2px solid var(--border-default);
+  color: var(--text-light);
+  user-select: none;
+  touch-action: none;
+  cursor: grab;
+}
+
+.final-rank-handle:active {
+  cursor: grabbing;
+}
+
+.final-rank-handle-dots {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  grid-template-rows: repeat(3, auto);
+  gap: 4px;
+  align-items: center;
+  justify-items: center;
+}
+
+.final-rank-handle-dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+  opacity: 0.6;
+}
+
+.final-rank-content {
+  flex: 1;
 }
 
 /* File Upload */

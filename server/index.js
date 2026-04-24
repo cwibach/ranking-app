@@ -21,6 +21,23 @@ const upload = multer({ storage: multer.memoryStorage() });
 // Store ranking states in memory
 const rankingStates = new Map();
 
+const isInternalKey = (key) => String(key).startsWith('__');
+
+const getPublicFieldnames = (items) => {
+  const first = Array.isArray(items) && items.length > 0 ? items[0] : null;
+  if (!first || typeof first !== 'object') return [];
+  return Object.keys(first).filter((key) => !isInternalKey(key));
+};
+
+const attachRankIds = (items) => {
+  (items ?? []).forEach((item, index) => {
+    if (item && typeof item === 'object' && item.__rankId === undefined) {
+      item.__rankId = index + 1;
+    }
+  });
+  return items;
+};
+
 const coerceRowsToStringValues = (rows) => {
   return (rows ?? []).map((row) => {
     const obj = row && typeof row === 'object' ? row : {};
@@ -100,12 +117,12 @@ app.post('/api/upload-csv', upload.single('file'), (req, res) => {
       return res.status(400).json({ error: 'No file provided' });
     }
 
-    const items = parseUploadedItems(req.file);
+    const items = attachRankIds(parseUploadedItems(req.file));
     const sessionId = Date.now().toString();
 
     rankingStates.set(sessionId, {
       items,
-      fieldnames: items.length > 0 ? Object.keys(items[0]) : [],
+      fieldnames: getPublicFieldnames(items),
       sortedItems: [],
       unsortedItems: items.map((_, i) => i),
       currentItem: null,
@@ -119,7 +136,7 @@ app.post('/api/upload-csv', upload.single('file'), (req, res) => {
     res.json({
       sessionId,
       itemCount: items.length,
-      fieldnames: items.length > 0 ? Object.keys(items[0]) : []
+      fieldnames: getPublicFieldnames(items)
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -164,7 +181,7 @@ app.post('/api/load-inprogress', upload.single('file'), (req, res) => {
     // parse the remainder of the CSV in one shot; `csv-parse` will handle
     // quoted values (including embedded newlines) correctly now that we
     // haven't mangled the input.
-    const items = parse(restCSV, { columns: true, skip_empty_lines: true });
+    const items = attachRankIds(parse(restCSV, { columns: true, skip_empty_lines: true }));
 
     if (sortedCount < 0 || sortedCount > items.length) return res.status(400).json({ error: 'sortedCount out of range' });
     if (binaryLow < 0 || binaryHigh < 0 || binaryLow > binaryHigh || binaryHigh > sortedCount) {
@@ -172,7 +189,7 @@ app.post('/api/load-inprogress', upload.single('file'), (req, res) => {
     }
 
     const sessionId = Date.now().toString();
-    const fieldnames = items.length > 0 ? Object.keys(items[0]) : [];
+    const fieldnames = getPublicFieldnames(items);
 
     const sortedItems = items.slice(0, sortedCount);
     let currentItem = null;
@@ -232,6 +249,71 @@ app.post('/api/load-inprogress', upload.single('file'), (req, res) => {
     return res.json({ status: 'ready-to-insert', sessionId, itemCount: items.length, fieldnames, sortedCount, binaryLow, binaryHigh, comparisons: comparisonCount });
   } catch (error) {
     res.status(400).json({ error: error.message });
+  }
+});
+
+// Reorder final sorted results (used by drag-and-drop in Results UI)
+app.post('/api/reorder-results', (req, res) => {
+  try {
+    const { sessionId, orderedIds } = req.body;
+    const state = rankingStates.get(sessionId);
+
+    if (!state) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    if (!Array.isArray(orderedIds)) {
+      return res.status(400).json({ error: 'orderedIds must be an array' });
+    }
+
+    if (!Array.isArray(state.sortedItems) || state.sortedItems.length === 0) {
+      return res.status(400).json({ error: 'No sorted results to reorder' });
+    }
+
+    const normalizedIds = orderedIds.map((id) => {
+      const n = typeof id === 'number' ? id : Number(id);
+      return Number.isFinite(n) ? n : null;
+    });
+
+    if (normalizedIds.some((v) => v === null)) {
+      return res.status(400).json({ error: 'orderedIds must contain only numbers' });
+    }
+
+    if (normalizedIds.length !== state.sortedItems.length) {
+      return res.status(400).json({ error: 'orderedIds length must match sortedItems length' });
+    }
+
+    const byId = new Map();
+    for (const item of state.sortedItems) {
+      const id = item?.__rankId;
+      if (typeof id === 'number') {
+        byId.set(id, item);
+      }
+    }
+
+    if (byId.size !== state.sortedItems.length) {
+      return res.status(500).json({ error: 'Internal error: missing __rankId on sorted items' });
+    }
+
+    const seen = new Set();
+    const reordered = [];
+    for (const id of normalizedIds) {
+      if (seen.has(id)) {
+        return res.status(400).json({ error: 'orderedIds must not contain duplicates' });
+      }
+      seen.add(id);
+
+      const item = byId.get(id);
+      if (!item) {
+        return res.status(400).json({ error: 'orderedIds contains unknown id' });
+      }
+      reordered.push(item);
+    }
+
+    state.sortedItems = reordered;
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 

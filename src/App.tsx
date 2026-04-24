@@ -8,7 +8,7 @@ import Results from './components/Results'
 type AppState = 'file-selection' | 'ranking-options' | 'ranking' | 'results'
 
 interface Item {
-  [key: string]: string
+  [key: string]: string | number | undefined
 }
 
 // mirror the response shape used by the server for the ranking endpoint

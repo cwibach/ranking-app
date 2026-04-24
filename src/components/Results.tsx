@@ -1,9 +1,10 @@
 import { Box, Grid, Typography, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material'
 import FinalItemList from './FinalRankingList.tsx'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface Item {
-  [key: string]: string
+  [key: string]: string | number | undefined
+  __rankId?: number
 }
 
 interface Props {
@@ -15,6 +16,11 @@ interface Props {
 export default function Results({ sessionId, onNewRanking, sortedItems }: Props) {
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [finalItems, setFinalItems] = useState<Item[]>(sortedItems)
+
+  useEffect(() => {
+    setFinalItems(sortedItems)
+  }, [sortedItems])
 
   const handleDownload = async () => {
     try {
@@ -58,6 +64,26 @@ export default function Results({ sessionId, onNewRanking, sortedItems }: Props)
     setConfirmOpen(false)
     handleExit()
     onNewRanking()
+  }
+
+  const handleReorder = async (newOrder: Item[]) => {
+    setFinalItems(newOrder)
+
+    const orderedIds = newOrder.map((it) => it.__rankId).filter((v): v is number => typeof v === 'number')
+    if (orderedIds.length !== newOrder.length) {
+      // If IDs are missing, we can still reorder locally for display.
+      return
+    }
+
+    try {
+      await fetch(`${API_URL}/api/reorder-results`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, orderedIds })
+      })
+    } catch {
+      // Non-fatal: display stays reordered even if server doesn't persist.
+    }
   }
 
   return (
@@ -108,7 +134,7 @@ export default function Results({ sessionId, onNewRanking, sortedItems }: Props)
             // border: 'var(--dashed-border)',
             ml: 1
           }}>
-          <FinalItemList itemList={sortedItems} />
+          <FinalItemList itemList={finalItems} onReorder={handleReorder} />
         </Box>
 
         <Box className="btn-group" sx={{

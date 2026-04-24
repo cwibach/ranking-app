@@ -2,7 +2,8 @@ import { Button, Typography, Box } from '@mui/material'
 import { useState } from 'react'
 
 interface Item {
-  [key: string]: string
+    [key: string]: string | number | undefined
+    __rankId?: number
 }
 
 interface Props {
@@ -12,12 +13,20 @@ interface Props {
 
 interface Props2 {
     item: Item
-    index: number
-    expandView: (index: number) => void
+    itemId: number
+    expandView: (itemId: number) => void
 }
 
+const isInternalKey = (key: string) => key === '__rankId' || key.startsWith('__');
+
+const getPrimaryValue = (item: Item) => {
+    const entry = Object.entries(item).find(([key]) => !isInternalKey(key));
+    const value = entry?.[1];
+    return value === null || value === undefined ? '' : String(value);
+};
+
 export const ExpandedItemInfo = ({item, hideView}: Props) => {
-    const [, firstValue] = Object.entries(item)[0]
+    const firstValue = getPrimaryValue(item)
 
     const ImageField = ({ label, url }: { label: string; url: string | undefined }) => {
         const [errored, setErrored] = useState(false)
@@ -74,16 +83,16 @@ export const ExpandedItemInfo = ({item, hideView}: Props) => {
                 {firstValue}
             </Typography>
 
-            {Object.entries(item).map(([key, value]) => {
+            {Object.entries(item).filter(([key]) => !isInternalKey(key)).map(([key, value]) => {
                 const normalized = key.trim().toLowerCase()
                 if (normalized === 'image') {
-                    return <ImageField key={key} label={key} url={value} />
+                    return <ImageField key={key} label={key} url={typeof value === 'string' ? value : undefined} />
                 }
 
                 return (
                     <div key={key}>
                         <Typography variant="body1" sx={{mb:1}}>
-                            <b>{key}:</b> {value}
+                            <b>{key}:</b> {value === null || value === undefined ? '' : String(value)}
                         </Typography>
                     </div>
                 )
@@ -100,8 +109,8 @@ export const ExpandedItemInfo = ({item, hideView}: Props) => {
     )
 }
 
-export const UnExpandedItemInfo = ({item, index, expandView}: Props2) => {
-    const [, firstValue] = Object.entries(item)[0]
+export const UnExpandedItemInfo = ({item, itemId, expandView}: Props2) => {
+    const firstValue = getPrimaryValue(item)
 
     return(
         <Box sx={{
@@ -113,7 +122,7 @@ export const UnExpandedItemInfo = ({item, index, expandView}: Props2) => {
             </Typography>
 
             <Button
-                onClick={() => expandView(index)}
+                onClick={() => expandView(itemId)}
                 variant="outlined"
                 sx={{mb:1, mt:1}}
             >
