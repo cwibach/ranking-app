@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type KeyboardEvent, type MouseEvent } from 'react'
 import { Box, Button, Typography } from '@mui/material'
 
 export interface Item {
@@ -69,11 +69,21 @@ export default function SelectItem({
 }: Props) {
   return (
     <Box
-      className="panel-content"
+      className="panel-content clickable-panel"
+      role="button"
+      tabIndex={0}
+      onClick={onSelect}
+      onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onSelect()
+        }
+      }}
       sx={{
         p: 1,
         // border: 'var(--dashed-border)',
-        ml: 0
+        ml: 0,
+        cursor: 'pointer'
       }}
     >
       <Typography className={headerClassName} variant="h4" sx={{ mb: 2 }}>
@@ -96,21 +106,6 @@ export default function SelectItem({
           </div>
         )
       })}
-
-      <Button
-        className={buttonClassName}
-        onClick={onSelect}
-        variant="contained"
-        sx={{
-          mt: 'auto',
-          position: 'sticky',
-          bottom: 0,
-          zIndex: 2,
-          width: '100%'
-        }}
-      >
-        {buttonText}
-      </Button>
     </Box>
   )
 }
